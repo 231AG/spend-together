@@ -1,0 +1,18 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # One PR per ecosystem cluster keeps review tractable; the majors that
+      # matter (next, react, typescript, eslint) are reviewed individually.
+      dev-tooling:
+        patterns: ['prettier', 'turbo', 'vitest', '@vitest/*']
+      types:
+        patterns: ['@types/*']
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

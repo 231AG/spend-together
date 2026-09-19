@@ -1,0 +1,14 @@
+node_modules
+.next
+dist
+coverage
+.turbo
+pnpm-lock.yaml
+
+# The plan and spec documents are hand-wrapped prose with deliberate line
+# breaks and wide tables. Prettier would reflow them and destroy the diffs.
+docs/
+CLAUDE.md
+
+# Fixtures are deliberately malformed to prove the lint rules fire.
+tools/lint-fixtures/

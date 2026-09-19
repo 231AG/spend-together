@@ -50,7 +50,7 @@ every phase.
 
 | Phase | Name | Depends on | Est. | Uncertainty | Status |
 |---|---|---|:-:|:-:|---|
-| F0 | Foundation | — | 3 d | Medium | Not started |
+| F0 | Foundation | — | 3 d | Medium | **Complete** (19 Sep 2026) |
 | F1 | Contract freeze (`packages/schemas`) | F0 | 4 d | Low | Not started |
 | F2 | Domain package (`packages/domain`) | F0, F1 | 6 d | Medium | Not started |
 | F3 | Design system | F0, F2 | 9 d | **High** | Not started |
@@ -136,3 +136,4 @@ From `/CLAUDE.md`, repeated because they are the ones that matter:
 |---|---|---|
 | 2026-09-18 | Step 0 | Sources committed to `docs/spec/`; 61-page digest and design-board notes written |
 | 2026-09-18 | Gate B | Full plan written: `CLAUDE.md`, 7 shared documents, 14 frontend phases, 12 backend phases, UX/UI specification, both acceptance checklists |
+| 2026-09-19 | **F0** | Monorepo stood up and verified. Compatibility spike found one real blocker: `typescript-eslint` refuses TypeScript 7, so TS is pinned to 6.0.3 (**ADR-009**); pnpm pinned to the proven 10.33.0 (**ADR-010**). Three custom lint rules built and proven firing against fixtures. API-mode switch and injectable clock in place. CI runs format → lint → lint:rules → typecheck → test → build in both API modes. |

@@ -70,21 +70,46 @@ phases' files unless you are checking an interface between them.
 
 ## Commands
 
-> Filled in at the end of phase F0, once the workspace exists. Until then there is no
-> application code in this repository and nothing to run.
+Verified working from a clean clone at the end of phase F0.
 
-```
+```bash
 pnpm install            # install workspace dependencies
-pnpm dev                # run apps/web against the MSW mock API
+pnpm dev                # run apps/web (defaults to NEXT_PUBLIC_API_MODE=mock)
 pnpm build              # build all packages
 pnpm typecheck          # tsc --noEmit across the workspace
-pnpm lint               # eslint
+pnpm lint               # eslint across the workspace
+pnpm lint:rules         # prove the three custom lint rules still fire
+pnpm format             # prettier --write
+pnpm format:check       # prettier --check (what CI runs)
 pnpm test               # vitest unit + component
-pnpm test:domain        # vitest packages/domain (100% coverage gate)
-pnpm e2e                # playwright
-pnpm db:start           # supabase start            (backend phases only)
-pnpm db:test            # supabase test db (pgTAP)  (backend phases only)
+pnpm test:domain        # vitest packages/domain (100% coverage gate, enforced from F2)
 ```
+
+Not available until the backend phases create them:
+
+```bash
+pnpm db:start           # supabase start            (arrives in B0)
+pnpm db:test            # supabase test db (pgTAP)  (arrives in B2)
+```
+
+### Toolchain versions, and why
+
+Pinned exactly — no caret ranges — and proven together by the F0-01 spike:
+
+| Tool | Version | Note |
+|---|---|---|
+| Node | 22 | |
+| pnpm | 10.33.0 | **Not 12.x.** ADR-010 |
+| TypeScript | 6.0.3 | **Not 7.x.** `typescript-eslint` refuses TS 7 — ADR-009 |
+| Next.js | 16.3.5 | |
+| React | 19.3.0 | |
+| ESLint | 10.10.0 | with `typescript-eslint` 8.70.0 |
+| Vitest | 5.0.1 | |
+| Tailwind | 4.3.3 | `@theme inline` confirmed working as spec §18.1 assumes |
+
+If Dependabot proposes TypeScript 7, the answer is no until
+[typescript-eslint#10940](https://github.com/typescript-eslint/typescript-eslint/issues/10940)
+ships. ADR-009 is the reason to point at.
 
 ## Two habits that keep this project honest
 

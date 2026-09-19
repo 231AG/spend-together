@@ -2,10 +2,15 @@
 
 Three tables: Claude Code skills, MCP servers, npm packages and CLIs.
 
-**Version provenance.** Every version below was read from the live npm registry on
-**18 September 2026** during planning — not recalled from memory. Anything that could
-not be verified is marked `VERIFY AT F0`. **Nothing has been installed.** F0's first
-ticket installs and proves this set together (risk R-01).
+**Version provenance.** Versions were read from the live npm registry on **18 September
+2026** during planning, then **installed and proven together on 19 September 2026** by
+the F0-01 compatibility spike (risk R-01). Rows marked ✅ verified were exercised end to
+end — install, lint, typecheck, test, build.
+
+> **The spike found one real incompatibility.** `typescript-eslint` hard-refuses
+> TypeScript 7, so TypeScript is pinned to **6.0.3**, not 7.0.2 — see **ADR-009**. pnpm
+> is pinned to the environment's **10.33.0** rather than 12.4.2 — see **ADR-010**. Both
+> rows below reflect what is actually installed.
 
 Verification status legend: ✅ verified now · ⚠️ `VERIFY AT F0` · 🔨 to be created by us.
 
@@ -60,14 +65,16 @@ without a matching committed migration.
 
 | Package | Version | Purpose | Phase | Req? | Verified |
 |---|---|---|---|:-:|:-:|
-| `pnpm` | 12.4.2 | Workspace manager (`packageManager` field pins it) | F0 | Required | ✅ |
-| `turbo` | 2.10.13 | Task graph, remote-cacheable pipelines | F0 | Required | ✅ |
-| `typescript` | 7.0.2 | Strict everywhere | F0 | Required | ✅ |
-| `eslint` | 10.10.0 | Lint, incl. the money and import-boundary rules | F0 | Required | ✅ |
-| `prettier` | 3.9.8 | Formatting | F0 | Required | ✅ |
-| `vitest` | 5.0.1 | Unit + component runner, coverage | F0 | Required | ✅ |
-| `@vitest/coverage-v8` | ⚠️ match vitest | 100% gate for `packages/domain` | F2 | Required | ⚠️ |
-| `husky` + `lint-staged` | ⚠️ | Pre-commit lint/format | F0 | Optional | ⚠️ |
+| `pnpm` | **10.33.0** | Workspace manager (`packageManager` field pins it). ADR-010 | F0 | Required | ✅ proven |
+| `turbo` | 2.10.13 | Task graph, remote-cacheable pipelines | F0 | Required | ✅ proven |
+| `typescript` | **6.0.3** | Strict everywhere. 7.0.2 blocked by ADR-009 | F0 | Required | ✅ proven |
+| `eslint` | 10.10.0 | Lint, incl. the money and import-boundary rules | F0 | Required | ✅ proven |
+| `prettier` | 3.9.8 | Formatting | F0 | Required | ✅ proven |
+| `vitest` | 5.0.1 | Unit + component runner, coverage | F0 | Required | ✅ proven |
+| `@vitest/coverage-v8` | 5.0.1 | 100% gate for `packages/domain` (declared F0, enforced F2) | F0 | Required | ✅ installed |
+| `typescript-eslint` | 8.70.0 | TS parser + rules. Supports ESLint ^10; caps TS <6.1 (ADR-009) | F0 | Required | ✅ proven |
+| `@eslint/js` | 10.0.1 | ESLint recommended base. Versioned independently of `eslint` | F0 | Required | ✅ proven |
+| `husky` + `lint-staged` | — | Pre-commit lint/format | — | Optional | Not adopted — CI covers it |
 
 ### `packages/domain` — pure, two dependencies only
 
@@ -91,7 +98,7 @@ non-negotiable rule in `CLAUDE.md`.
 |---|---|---|---|:-:|:-:|
 | `next` | 16.3.5 | App Router, Node.js runtime, intercepted routes | F0 | Required | ✅ |
 | `react` / `react-dom` | 19.3.0 | — | F0 | Required | ✅ |
-| `tailwindcss` | 4.3.3 | `@theme inline` token mapping (§18.1) | F3 | Required | ✅ |
+| `tailwindcss` | 4.3.3 | `@theme inline` token mapping (§18.1) — indirection confirmed in F0-01 | F3 | Required | ✅ proven |
 | `@radix-ui/react-dialog` | 1.1.23 | Dialogs and sheets (focus trap, Esc, focus return) | F3 | Required | ✅ |
 | `@radix-ui/react-*` | ⚠️ per package | Popover, Select, Tabs, RadioGroup, Toast, Tooltip | F3 | Required | ⚠️ |
 | `lucide-react` | 1.47.0 | Icon set (§18.2: rounded outline, 20/24 px, stroke 1.75) | F3 | Required | ✅ |
@@ -130,16 +137,16 @@ non-negotiable rule in `CLAUDE.md`.
 
 ---
 
-## What F0 must confirm before anything else is built
+## What F0 confirmed — results
 
-1. The root set (`next` 16 · `react` 19.3 · `typescript` 7 · `eslint` 10 · `vitest` 5 ·
-   `tailwindcss` 4.3) installs together with no unresolved peer conflicts.
-2. TypeScript 7 accepts the strict flags we want (`strict`,
-   `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`) and the ESLint 10 flat
-   config runs under it.
-3. Tailwind 4.3's `@theme inline` behaves as spec §18.1 assumes.
-4. `pnpm typecheck`, `pnpm lint`, `pnpm test` and `pnpm build` all pass on an empty
-   workspace.
-5. The Supabase CLI version and whether Docker is available here (risk R-13).
+Run 19 September 2026, ticket F0-01. Anything that failed became an ADR, not a silent
+downgrade.
 
-Anything that fails becomes an ADR recording the fallback — not a silent downgrade.
+| # | Question | Result |
+|:-:|---|---|
+| 1 | Does the root set install together without unresolved peer conflicts? | **No, as pinned.** `typescript-eslint` caps TypeScript at `<6.1.0`. Resolved by ADR-009 (TS 6.0.3). Everything else installed clean. |
+| 2 | Does TypeScript accept `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`? | **Yes** — on both 7.0.2 and 6.0.3. Each flag was verified *firing* on a deliberate violation, not just accepted. |
+| 3 | Does the ESLint 10 flat config run under it? | **Yes on TS 6.0.3. No on TS 7** — typescript-eslint throws at load. This is what forced ADR-009. |
+| 4 | Does Tailwind 4.3's `@theme inline` behave as §18.1 assumes? | **Yes.** Confirmed it emits `.text-income{color:var(--money-income)}` — a variable reference, not an inlined value. That indirection is what F3's semantic aliases require. |
+| 5 | Do `pnpm install / lint / typecheck / test / build` pass? | **Yes**, all five, across all four workspaces. |
+| 6 | Supabase CLI version and Docker availability (risk R-13)? | **Deferred to B0**, which is where that ticket lives. No backend phase is unblocked by F0. |
