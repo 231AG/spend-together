@@ -1,0 +1,4 @@
+{
+  "extends": "@spendtogether/config/typescript/base.json",
+  "include": ["src", "test"]
+}

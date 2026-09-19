@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pnpm install --frozen-lockfile --prefer-offline 2>&1 | tail -3"
+          }
+        ]
+      }
+    ]
+  }
+}

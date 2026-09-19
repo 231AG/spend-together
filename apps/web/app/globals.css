@@ -1,0 +1,7 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens arrive in phase F3, transcribed from spec 17-18. This file
+ * currently carries only enough to prove Tailwind 4's `@theme inline` mapping
+ * works as spec 18.1 assumes — verified in the F0-01 compatibility spike.
+ */

@@ -190,3 +190,87 @@ of truth. No `docs/plans/pdf/` directory exists.
 **Consequences.** Plans stay diffable and reviewable in the pull request, which is where
 review actually happens. If a PDF is ever needed for an outside reader, the exporter can
 be added later under `docs/tools/` without touching plan content.
+
+---
+
+## ADR-009 — TypeScript 6.0.3, not 7.0.2, until typescript-eslint supports TS 7
+
+**Status:** Accepted
+**Date:** 19 September 2026 (phase F0, ticket F0-01)
+**Supersedes:** the TypeScript row of `tooling-and-skills.md` §3, which pinned 7.0.2
+
+**Context.** The plan pinned TypeScript 7.0.2, read from the npm registry at
+planning time. F0-01's compatibility spike ran the full pinned stack together
+before any product code depended on it — which is exactly what that ticket exists
+for (risk R-01).
+
+TypeScript 7 works on its own: 7.0.2 accepted `strict`,
+`noUncheckedIndexedAccess` and `exactOptionalPropertyTypes`, and both flags were
+verified to fire on deliberate violations.
+
+**The blocker is `typescript-eslint`.** Version 8.70.0 — the latest stable, and
+the only one supporting ESLint 10 — declares `typescript@>=4.8.4 <6.1.0` and
+*hard-refuses* to load against TS 7:
+
+```
+typescript-eslint does not support TS 7.0.
+See https://github.com/typescript-eslint/typescript-eslint/issues/10940
+for tracking typescript-eslint's support for TS >=7.1
+```
+
+This is a load-time throw, not a warning. It costs not just type-aware rules but
+the ability to lint `.ts` files **at all**, because the parser comes from the same
+package. The three custom lint rules are a core F0 deliverable and the mechanism
+behind three of CLAUDE.md's non-negotiable rules, so shipping without them was
+never an option.
+
+**Options considered.**
+
+1. **TypeScript 6.0.3** (chosen). Latest 6.x. Everything works: both strict flags
+   fire, ESLint 10 + typescript-eslint 8.70.0 load cleanly, and all three custom
+   rules were verified firing on fixtures.
+2. *Side-by-side installs* — TS 7 for compilation, TS 6 for typescript-eslint's
+   API, as the TypeScript 7 release notes suggest. Two compilers, two sets of
+   diagnostics, and a real risk that lint and typecheck disagree about the same
+   file. Disproportionate for the benefit.
+3. *Drop TypeScript linting* — rejected outright. It would remove the money rule,
+   the ambient-clock rule and the import-boundary rule.
+
+**Decision.** Pin `typescript@6.0.3` across the workspace.
+
+**Consequences.**
+- No functional loss: TS 6.0.3 supports every compiler option this project uses.
+- We forgo TS 7's compile-speed improvements. On a workspace this size that is
+  not yet a cost worth a two-compiler setup.
+- **Revisit when `typescript-eslint` ships TS ≥ 7.1 support** (issue #10940). The
+  upgrade is then a version bump plus a full CI run, because nothing in our code
+  depends on TS 6 semantics.
+- Dependabot will keep proposing TypeScript 7; those PRs stay closed until #10940
+  lands. This ADR is the reason to point at.
+
+**Also verified in the same spike (no change needed):** Next 16.3.5, React 19.3.0,
+Vitest 5.0.1, ESLint 10.10.0, Prettier 3.9.8, Turbo 2.10.13, and Tailwind 4.3.3 —
+including that `@theme inline` emits `var(...)` references rather than inlined
+values, which is precisely the indirection spec §18.1 assumes and phase F3 needs.
+
+---
+
+## ADR-010 — pnpm 10.33.0, not 12.4.2
+
+**Status:** Accepted
+**Date:** 19 September 2026 (phase F0, ticket F0-01)
+
+**Context.** The plan pinned pnpm 12.4.2, the registry's latest at planning time.
+The build environment ships pnpm 10.33.0, and the entire F0 verification — install,
+lint, typecheck, test, build — was performed under it.
+
+**Decision.** Pin `"packageManager": "pnpm@10.33.0"` and use the same version in CI.
+
+**Rationale.** Pinning a version we have not run would reintroduce exactly the
+unverified-claim problem the F0-01 spike exists to eliminate, and lockfile format
+differs across pnpm majors. The version that is pinned is the version that was
+proven.
+
+**Consequences.** Upgrading to pnpm 12 is a deliberate, separately verified change:
+bump `packageManager`, bump the CI `pnpm/action-setup` version, regenerate the
+lockfile, and run CI. Not urgent — nothing in the plan depends on a pnpm 12 feature.

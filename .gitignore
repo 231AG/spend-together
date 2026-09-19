@@ -41,6 +41,9 @@ Thumbs.db
 npm-debug.log*
 pnpm-debug.log*
 
+# Next.js generated types — regenerated on build; typecheck does not need them
+next-env.d.ts
+
 # Misc
 *.tsbuildinfo
 .vercel
