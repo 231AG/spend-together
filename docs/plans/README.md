@@ -50,7 +50,7 @@ every phase.
 
 Owner asked for a visual sign-off before F0 (27 Sep 2026). A static preview of 10 key
 screens at mobile, tablet and desktop lives in `design-preview/` with screenshots. It is
-throwaway and is replaced by real components in F3. Status: **Awaiting owner review.**
+throwaway and is replaced by real components in F3. Status: **Approved by owner, 27 Sep 2026.**
 
 ### Frontend — 76 days
 
