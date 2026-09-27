@@ -190,3 +190,26 @@ of truth. No `docs/plans/pdf/` directory exists.
 **Consequences.** Plans stay diffable and reviewable in the pull request, which is where
 review actually happens. If a PDF is ever needed for an outside reader, the exporter can
 be added later under `docs/tools/` without touching plan content.
+
+---
+
+## ADR-009 — TypeScript is pinned to 6.0.x, not 7.0 (F0-01 spike outcome)
+
+**Status:** Accepted (F0, 27 Sep 2026)
+**Supersedes:** the `typescript 7.0.2` pin in `tooling-and-skills.md`
+
+**Context.** The F0-01 compatibility spike installed `typescript@7.0.2` with
+`typescript-eslint@8.70.1` and ESLint 10. TypeScript 7 is the native (Go) compiler: its
+npm package ships a `tsc` binary but no JavaScript compiler API (`ts.createProgram` is
+`undefined`). typescript-eslint's type-aware rules and Next.js's build-time type check
+both load that API, so linting crashed on the first file. typescript-eslint's latest and
+canary releases both declare `typescript >=4.8.4 <6.1.0`.
+
+**Decision.** Pin `typescript@6.0.3` in every workspace. One compiler version for
+`tsc`, ESLint and `next build`. Dependabot ignores TypeScript minor and major bumps until
+this ADR is revisited.
+
+**Consequences.** Type-aware lint rules (`strictTypeChecked`) and the custom money,
+boundary and clock rules all run. We give up TypeScript 7's faster `tsc` for now; at this
+codebase size the difference is seconds. Revisit when typescript-eslint supports 7.x:
+change the pin, drop the Dependabot ignore, run the full F0 exit checklist again.

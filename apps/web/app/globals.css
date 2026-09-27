@@ -1,0 +1,15 @@
+@import 'tailwindcss';
+
+/* Placeholder token mapping that proves Tailwind 4's @theme inline works as spec §18.1
+   assumes (F0-01). The full token set lands in F3. */
+:root {
+  --color-primary-700: #047857;
+  --color-neutral-50: #f9fafb;
+  --color-neutral-900: #111827;
+}
+
+@theme inline {
+  --color-primary-700: var(--color-primary-700);
+  --color-neutral-50: var(--color-neutral-50);
+  --color-neutral-900: var(--color-neutral-900);
+}
