@@ -1,0 +1,27 @@
+{
+  "name": "spendtogether",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.6.0",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "turbo run dev --filter=@spendtogether/web",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "lint": "eslint . --max-warnings 0",
+    "test": "turbo run test",
+    "test:domain": "pnpm --filter @spendtogether/domain test:coverage",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@spendtogether/config": "workspace:*",
+    "eslint": "10.11.0",
+    "prettier": "3.9.9",
+    "turbo": "2.11.4",
+    "typescript": "6.0.3",
+    "vitest": "5.0.2"
+  }
+}

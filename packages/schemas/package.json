@@ -1,0 +1,21 @@
+{
+  "name": "@spendtogether/schemas",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The frozen API contract (spec §10) as Zod schemas.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@spendtogether/config": "workspace:*",
+    "@types/node": "22.20.4",
+    "typescript": "6.0.3",
+    "vitest": "5.0.2"
+  }
+}

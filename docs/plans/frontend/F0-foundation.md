@@ -144,3 +144,18 @@ F0-07, F0-09…F0-11). Medium uncertainty, concentrated entirely in F0-01.
 Owner reviews: the commands all run from a clean clone; the three lint rules demonstrably
 fire; CI is green on the PR; the pinned version table in `tooling-and-skills.md` matches
 what was actually installed, with any fallback recorded as an ADR. Then F1 may start.
+
+## 12. As built (27 Sep 2026)
+
+- TypeScript is 6.0.3, not 7.0.2 (ADR-009). Other pins moved to current patch/minor
+  releases; see *F0 findings* in `tooling-and-skills.md`.
+- The env module lives at `apps/web/lib/env.ts` (not `apps/web/src/env.ts`), matching the
+  `lib/` layout in `repo-structure.md`. It is imported by `next.config.ts`, so validation
+  runs at both `next dev` and `next build`.
+- `lib/clock.ts` landed here rather than F2 because the no-ambient-date rule needs its
+  allow-listed home from day one.
+- The three rules are covered by RuleTester fixtures in
+  `packages/config/eslint/rules.test.js` (32 cases), and were also shown firing under
+  `pnpm lint` on throwaway violation files.
+- Secret scanning is a repository setting, not a file: the owner enables it under
+  Settings → Code security. Dependabot is configured in `.github/dependabot.yml`.

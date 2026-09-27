@@ -70,21 +70,22 @@ phases' files unless you are checking an interface between them.
 
 ## Commands
 
-> Filled in at the end of phase F0, once the workspace exists. Until then there is no
-> application code in this repository and nothing to run.
+Node 22.12+, pnpm 12 (pinned by `packageManager`; run `corepack enable` once). Copy
+`apps/web/.env.example` to `apps/web/.env.local` before `dev` or `build`.
 
 ```
 pnpm install            # install workspace dependencies
-pnpm dev                # run apps/web against the MSW mock API
-pnpm build              # build all packages
+pnpm dev                # run apps/web (API mode from NEXT_PUBLIC_API_MODE; MSW arrives in F4)
+pnpm build              # build all packages and the web app
 pnpm typecheck          # tsc --noEmit across the workspace
-pnpm lint               # eslint
-pnpm test               # vitest unit + component
-pnpm test:domain        # vitest packages/domain (100% coverage gate)
-pnpm e2e                # playwright
-pnpm db:start           # supabase start            (backend phases only)
-pnpm db:test            # supabase test db (pgTAP)  (backend phases only)
+pnpm lint               # eslint, incl. no-float-money, import-boundaries, no-ambient-date
+pnpm format             # prettier --write   (format:check in CI)
+pnpm test               # vitest across all workspaces
+pnpm test:domain        # vitest packages/domain with the 100% coverage gate
 ```
+
+Added by later phases: `pnpm e2e` (Playwright, F13), `pnpm db:start` and `pnpm db:test`
+(Supabase, backend phases).
 
 ## Two habits that keep this project honest
 

@@ -60,13 +60,13 @@ without a matching committed migration.
 
 | Package | Version | Purpose | Phase | Req? | Verified |
 |---|---|---|---|:-:|:-:|
-| `pnpm` | 12.4.2 | Workspace manager (`packageManager` field pins it) | F0 | Required | ✅ |
-| `turbo` | 2.10.13 | Task graph, remote-cacheable pipelines | F0 | Required | ✅ |
-| `typescript` | 7.0.2 | Strict everywhere | F0 | Required | ✅ |
-| `eslint` | 10.10.0 | Lint, incl. the money and import-boundary rules | F0 | Required | ✅ |
-| `prettier` | 3.9.8 | Formatting | F0 | Required | ✅ |
-| `vitest` | 5.0.1 | Unit + component runner, coverage | F0 | Required | ✅ |
-| `@vitest/coverage-v8` | ⚠️ match vitest | 100% gate for `packages/domain` | F2 | Required | ⚠️ |
+| `pnpm` | 12.6.0 (installed F0) | Workspace manager (`packageManager` field pins it) | F0 | Required | ✅ |
+| `turbo` | 2.11.4 (installed F0) | Task graph, remote-cacheable pipelines | F0 | Required | ✅ |
+| `typescript` | **6.0.3** (installed F0; 7.0.2 has no JS API, see ADR-009) | Strict everywhere | F0 | Required | ✅ |
+| `eslint` | 10.11.0 (installed F0) | Lint, incl. the money and import-boundary rules | F0 | Required | ✅ |
+| `prettier` | 3.9.9 (installed F0) | Formatting | F0 | Required | ✅ |
+| `vitest` | 5.0.2 (installed F0) | Unit + component runner, coverage | F0 | Required | ✅ |
+| `@vitest/coverage-v8` | 5.0.2 (installed F0) | 100% gate for `packages/domain` | F2 | Required | ⚠️ |
 | `husky` + `lint-staged` | ⚠️ | Pre-commit lint/format | F0 | Optional | ⚠️ |
 
 ### `packages/domain` — pure, two dependencies only
@@ -89,7 +89,7 @@ non-negotiable rule in `CLAUDE.md`.
 
 | Package | Version | Purpose | Phase | Req? | Verified |
 |---|---|---|---|:-:|:-:|
-| `next` | 16.3.5 | App Router, Node.js runtime, intercepted routes | F0 | Required | ✅ |
+| `next` | 16.3.6 (installed F0) | App Router, Node.js runtime, intercepted routes | F0 | Required | ✅ |
 | `react` / `react-dom` | 19.3.0 | — | F0 | Required | ✅ |
 | `tailwindcss` | 4.3.3 | `@theme inline` token mapping (§18.1) | F3 | Required | ✅ |
 | `@radix-ui/react-dialog` | 1.1.23 | Dialogs and sheets (focus trap, Esc, focus return) | F3 | Required | ✅ |
@@ -129,6 +129,22 @@ non-negotiable rule in `CLAUDE.md`.
 | Docker | present in most CI images | Required by the local Supabase stack | B0 | Environment-provided | Required | ⚠️ verify at B0 (risk R-13) |
 
 ---
+
+## F0 findings (27 Sep 2026)
+
+Installed and verified together: pnpm 12.6.0, turbo 2.11.4, TypeScript **6.0.3**,
+ESLint 10.11.0 with typescript-eslint 8.70.1, `@eslint/js` 10.0.1,
+`@next/eslint-plugin-next` 16.3.6, `eslint-plugin-react-hooks` 7.1.1, Prettier 3.9.9,
+Vitest 5.0.2, Next 16.3.6, React 19.3.0, Tailwind 4.3.3 with `@tailwindcss/postcss`
+4.3.3, Zod 4.6.5. `pnpm peers check` reports no issues. Patch/minor versions moved past
+the planning pins; all were current on npm at install.
+
+- **TypeScript 7.0.2 rejected** (ADR-009): no JavaScript compiler API, so typescript-eslint
+  and Next.js type-checking cannot run on it.
+- **Tailwind 4.3 `@theme inline` confirmed**: a token declared as a CSS variable and mapped
+  with `@theme inline` compiles to `color: var(--color-primary-700)`, exactly as §18.1
+  assumes.
+- **Docker** is present in this environment; the **Supabase CLI** is not installed. Both are first needed in B0 (R-13).
 
 ## What F0 must confirm before anything else is built
 

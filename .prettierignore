@@ -1,0 +1,7 @@
+pnpm-lock.yaml
+docs/
+design-preview/
+**/.next/
+**/dist/
+**/coverage/
+*.md
