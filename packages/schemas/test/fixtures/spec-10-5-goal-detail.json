@@ -1,0 +1,20 @@
+{
+  "id": "6b1e0f3a-2c4d-4e5f-8a9b-0c1d2e3f4a5b",
+  "type": "individual",
+  "name": "New Laptop",
+  "icon": "laptop",
+  "currency": "USD",
+  "target": { "amount_minor": 120000, "currency": "USD", "formatted": "$1,200.00" },
+  "balance": { "amount_minor": 60000, "currency": "USD", "formatted": "$600.00" },
+  "remaining": { "amount_minor": 60000, "currency": "USD", "formatted": "$600.00" },
+  "progress_pct": 50.0,
+  "target_date": "2026-12-31",
+  "days_remaining": 105,
+  "required_pace": { "daily": 571, "weekly": 4000, "monthly": 17393, "overdue": false },
+  "current_pace_daily": 769,
+  "projected_completion_date": "2026-12-05",
+  "status": "on_track",
+  "contributors": null,
+  "completed_at": null,
+  "archived_at": null
+}

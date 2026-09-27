@@ -31,6 +31,7 @@ tester.run('no-float-money', noFloatMoney, {
     { code: 'const s = totalMinor.toFixed(2);', errors: [{ messageId: 'toFixed' }] },
     { code: 'const x = parseFloat(String(amountMinor));', errors: [{ messageId: 'parse' }] },
     { code: 'const x = Number(balance.toString());', errors: [{ messageId: 'parse' }] },
+    { code: 'const x = parseFloat(goal.target.formatted);', errors: [{ messageId: 'parse' }] },
   ],
 });
 
