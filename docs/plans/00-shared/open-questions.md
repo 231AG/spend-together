@@ -57,7 +57,7 @@ downstream silently absorbs a zero. I recommend against it.
 
 ## Q4 — The seed currency list is never enumerated  ⚠️ highest-value answer
 
-**Status:** Assumed (provisional) · **Needed before:** B1 · **Impact:** seed, MSW fixtures, FX provider check
+**Status:** Closed, owner confirmed the 12-currency list below on 27 Sep 2026 · **Needed before:** B1 · **Impact:** seed, MSW fixtures, FX provider check
 
 §11.1 says "every currency in the seed list (including LRD)" but the spec never lists it.
 Only USD, LRD, EUR, GBP, NGN appear anywhere (wireframe W-08), and T-12 requires JPY
@@ -89,7 +89,7 @@ check, so an over-long list is safer than a short one.
 
 ## Q5 — The default category list is never enumerated  ⚠️ highest-value answer
 
-**Status:** Assumed (high confidence) · **Needed before:** B1 · **Impact:** seed, fixtures, pickers
+**Status:** Closed, owner confirmed the 14 categories below on 27 Sep 2026 · **Needed before:** B1 · **Impact:** seed, fixtures, pickers
 
 The DDL has `is_default`, §17.3 defines nine category colour tokens, and W-09 shows
 "14 categories" — but no list exists.

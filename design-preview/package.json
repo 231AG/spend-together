@@ -1,0 +1,16 @@
+{
+  "name": "spendtogether-design-preview",
+  "private": true,
+  "type": "module",
+  "description": "Static high-fidelity preview of 10 key screens for visual sign-off before F0. Replaced by real components in F3.",
+  "scripts": {
+    "build": "node build.mjs",
+    "shoot": "node shoot.mjs"
+  },
+  "devDependencies": {
+    "@fontsource/inter": "5.3.0",
+    "@fontsource/plus-jakarta-sans": "5.3.0",
+    "lucide-static": "1.48.0",
+    "playwright": "1.56.1"
+  }
+}
