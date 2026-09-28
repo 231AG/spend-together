@@ -53,9 +53,10 @@ Minimum 10-character passwords with the breached-password check enabled (§25.1)
 identifier returns `409 CONFLICT` with a **generic** message; the response is
 indistinguishable in shape and timing from a non-duplicate failure.
 
-**B4-05 · Forgot, reset and verify** — email link for email accounts, SMS code for phone
-accounts. On successful reset, **all other sessions are revoked** (§7.2). *Files:*
-`app/api/v1/auth/{forgot-password,reset-password,verify}/route.ts`. *Acceptance:*
+**B4-05 · Forgot, reset, verify and resend** — email link for email accounts, SMS code for phone
+accounts. On successful reset, **all other sessions are revoked** (§7.2). Resend (ADR-012)
+answers 202 identically whether or not the account exists. *Files:*
+`app/api/v1/auth/{forgot-password,reset-password,verify,verify/resend}/route.ts`. *Acceptance:*
 **FR-04** — the confirmation response is byte-identical whether or not the account
 exists; other sessions are genuinely revoked, verified with two live sessions.
 

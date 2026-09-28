@@ -98,7 +98,8 @@ function toSearch(query: Record<string, unknown> | undefined): string {
 export function createApiClient({
   mode,
   baseUrl,
-  fetch: doFetch = globalThis.fetch,
+  // Looked up per call, so test interceptors installed after import (msw/node) apply.
+  fetch: doFetch = (input, init) => globalThis.fetch(input, init),
   newKey = () => crypto.randomUUID(),
 }: ApiClientOptions): ApiClient {
   const base = baseUrl.replace(/\/+$/, '');

@@ -123,6 +123,7 @@ describe('contract conformance (F4-12)', () => {
     await hit('refresh', { body: { refresh_token: 'refresh-token' } });
     await hit('forgotPassword', { body: { identifier: 'pat@example.com' } });
     await hit('resetPassword', { body: { token: 'reset-token', password: 'another-long-pass' } });
+    await hit('resendVerification', { body: { identifier: 'pat@example.com' } });
     await hit('verify', {
       body: { identifier: 'pat@example.com', code: '123456', purpose: 'signup' },
     });

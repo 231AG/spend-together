@@ -20,10 +20,22 @@ export interface FieldProps {
   /** Extra line under the control (e.g. the ≈ conversion). Announced politely. */
   footer?: ReactNode | undefined;
   optional?: boolean | undefined;
+  /** A stable id for the control, e.g. so an error summary can link to it. */
+  id?: string | undefined;
 }
 
-export function Field({ label, hint, error, children, className, footer, optional }: FieldProps) {
-  const id = useId();
+export function Field({
+  label,
+  hint,
+  error,
+  children,
+  className,
+  footer,
+  optional,
+  id: fixedId,
+}: FieldProps) {
+  const generated = useId();
+  const id = fixedId ?? generated;
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = error ? `${id}-error` : undefined;
   const footerId = footer ? `${id}-footer` : undefined;

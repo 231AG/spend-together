@@ -9,6 +9,7 @@ import {
   RefreshRequest,
   RegisterRequest,
   ResetPasswordRequest,
+  ResendVerificationRequest,
   VerifyRequest,
 } from './auth';
 import {
@@ -62,7 +63,7 @@ import {
 // the generated docs/plans/00-shared/api-contract.md all read.
 
 export type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE';
-export type Source = '§10.3' | '§10.4' | 'ADR-003';
+export type Source = '§10.3' | '§10.4' | 'ADR-003' | 'ADR-012';
 
 export interface Endpoint<
   P extends z.ZodType | undefined = z.ZodType | undefined,
@@ -196,6 +197,16 @@ export const endpoints = {
     errors: ['UNAUTHENTICATED'],
   }),
 
+  resendVerification: endpoint({
+    method: 'POST',
+    path: '/auth/verify/resend',
+    summary: 'Send a new verification code or link',
+    source: 'ADR-012',
+    auth: 'public',
+    body: ResendVerificationRequest,
+    response: AcknowledgedResponse,
+    status: 202,
+  }),
   // ---- Me (§10.4)
   getMe: endpoint({
     method: 'GET',

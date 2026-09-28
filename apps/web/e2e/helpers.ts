@@ -4,13 +4,20 @@ import { expect, type Page } from '@playwright/test';
 // (F5 plan risk: "focus management regresses as screens are added").
 
 /** Choose a mock dataset before the app boots (read by mocks/persist.ts). */
-export async function useScenario(page: Page, variant: string): Promise<void> {
-  await page.addInitScript((v) => {
-    window.localStorage.setItem(
-      'spendtogether.mock-scenario',
-      JSON.stringify({ variant: v, recalcMs: 0 }),
-    );
-  }, variant);
+export async function useScenario(
+  page: Page,
+  variant: string,
+  extra: { offline?: boolean } = {},
+): Promise<void> {
+  await page.addInitScript(
+    ([v, x]) => {
+      window.localStorage.setItem(
+        'spendtogether.mock-scenario',
+        JSON.stringify({ variant: v, recalcMs: 0, ...x }),
+      );
+    },
+    [variant, extra] as const,
+  );
 }
 
 /** Wait until the page's h1 shows `title` (the app renders after the mock worker starts). */

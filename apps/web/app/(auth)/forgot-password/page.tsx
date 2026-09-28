@@ -1,11 +1,14 @@
-import { AuthPlaceholder } from '@/components/features/public/auth-placeholder';
+import { Suspense } from 'react';
+import { ForgotPasswordForm } from '@/components/features/auth/password-reset';
 
-// SCR-06 Forgot password `/forgot-password`.
-export default function ForgotPasswordPage() {
+// SCR-06 step 1 `/forgot-password` (FR-04).
+export default function Page() {
   return (
-    <AuthPlaceholder
-      title="Reset your password"
-      what="Enter your email or phone and we'll send a link or code. The answer is the same whether or not the account exists."
-    />
+    <>
+      <h1 className="type-h2">Reset your password</h1>
+      <Suspense>
+        <ForgotPasswordForm />
+      </Suspense>
+    </>
   );
 }

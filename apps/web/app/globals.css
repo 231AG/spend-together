@@ -20,6 +20,8 @@
   --breakpoint-*: initial;
 
   /* §21 breakpoints (min-width). Media queries cannot read custom properties. */
+  /* 360 px: illustrations hide below it (§21, F3-16). */
+  --breakpoint-xs: 22.5rem;
   --breakpoint-sm: 30rem;
   --breakpoint-md: 48rem;
   --breakpoint-lg: 64rem;

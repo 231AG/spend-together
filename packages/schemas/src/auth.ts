@@ -57,3 +57,10 @@ export const VerifyRequest = z.strictObject({
   code: z.string().min(1),
   purpose: z.enum(['signup', 'recovery']),
 });
+
+/**
+ * Send a new verification code or link (§7.1 "verification link expired → resend").
+ * Answers the same whether or not the identifier has an account (no enumeration).
+ * Added after the freeze by ADR-012.
+ */
+export const ResendVerificationRequest = z.strictObject({ identifier: Identifier });
