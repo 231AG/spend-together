@@ -11,7 +11,7 @@ phase), **Closed** (decided — kept for the record).
 
 ## Q1 — Undo has no endpoint in the contract
 
-**Status:** Assumed · **Needed before:** F1 closes · **Impact:** contract, F7, B5
+**Status:** Closed — restore endpoint adopted, shipped in F1 (decision log D-01) · **Needed before:** F1 closes · **Impact:** contract, F7, B5
 
 §7.4 and SCR-13 require a 5-second Undo on a soft-deleted transaction, and
 `DELETE /transactions/:id` returns `{undo_until}` — but no endpoint restores the row.
@@ -27,7 +27,7 @@ toast lie about what has already happened. Add ~0.5 d to F7.
 
 ## Q2 — Rounding order for required pace
 
-**Status:** Assumed · **Needed before:** F2 closes · **Impact:** domain, WAC-10, T-06
+**Status:** Closed — ADR-004 accepted, implemented in F2 (decision log D-03) · **Needed before:** F2 closes · **Impact:** domain, WAC-10, T-06
 
 F-16/F-17 read as multiplying F-15, but using the *rounded* F-15 does not reproduce the
 spec's own published figures ($40.00/week, $173.93/month; `{571, 4000, 17393}`).
@@ -41,7 +41,7 @@ each other.
 
 ## Q3 — Conversions that round below one minor unit
 
-**Status:** Assumed · **Needed before:** F1 closes · **Impact:** schemas, domain, B1, UX copy
+**Status:** Closed — ADR-005 accepted; `convert` returns `AMOUNT_TOO_SMALL` (decision log D-02) · **Needed before:** F1 closes · **Impact:** schemas, domain, B1, UX copy
 
 `check (base_amount_minor > 0)` can be violated by a legitimate entry (0.01 LRD → USD
 rounds to 0).
@@ -170,7 +170,7 @@ W-01…W-09 reproduce verbatim. Cost: test data reads as historical during devel
 
 ## Q9 — `current_pace_daily` in the §10.5 example is not reproducible
 
-**Status:** Open (low impact) · **Needed before:** F2 closes
+**Status:** Closed — F-18 normative, §10.5's 769 illustrative (decision log D-04) · **Needed before:** F2 closes
 
 §10.5 returns `current_pace_daily: 769` ($7.69/day), but F-18 over the W-06 contribution
 history ($50 on 15 Sep + $200 on 1 Sep, both inside the last 30 days, ÷ 30) gives $8.33.

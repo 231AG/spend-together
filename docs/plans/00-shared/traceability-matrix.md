@@ -49,16 +49,16 @@ Status: ☐ not started · ◐ in progress · ☑ evidenced by a passing test.
 | WAC-02 | Sessions survive reload/restart; logout clears all | F6, F11, B4, B8 | `e2e/session-persistence` | ☐ |
 | WAC-03 | Income CRUD updates all affected periods | F7, F8, B5 | `e2e/income-updates-totals` | ☐ |
 | WAC-04 | Same for expenses incl. category totals and % | F7, F8, B5 | `e2e/expense-updates-totals` | ☐ |
-| WAC-05 | Home matches F-01…F-06 for all three periods | F2, F8, B3, B5 | `domain/summary.test.ts`, `e2e/home-periods` | ☐ |
-| WAC-06 | Zero income → "N/A", no errors anywhere | F2, F8, B5 | `domain/summary.test.ts` **T-02**, `e2e/zero-income` | ☐ |
+| WAC-05 | Home matches F-01…F-06 for all three periods | F2, F8, B3, B5 | `packages/domain/test/*.test.ts`, `e2e/home-periods` | ◐ (domain ☑) |
+| WAC-06 | Zero income → "N/A", no errors anywhere | F2, F8, B5 | `packages/domain/test/*.test.ts` **T-02**, `e2e/zero-income` | ◐ (domain ☑) |
 | WAC-07 | Individual goals with inline validation | F9, B5 | `e2e/flows/7.5`, `goals.validation.test.ts` | ☐ |
 | WAC-08 | Couple goals gated; 409 COUPLE_REQUIRED | F9, B5 | `goals.couple-required.test.ts` | ☐ |
-| WAC-09 | Balance always equals sum of contributions | F2, B3, B5 | `domain/goal.test.ts`, pgTAP `goal_balances` | ☐ |
-| WAC-10 | Progress/remaining/pace/status/projection match F-11…F-20 | F2, F9, B5 | `domain/goal.test.ts` **T-04…T-10** | ☐ |
+| WAC-09 | Balance always equals sum of contributions | F2, B3, B5 | `packages/domain/test/*.test.ts`, pgTAP `goal_balances` | ◐ (domain ☑) |
+| WAC-10 | Progress/remaining/pace/status/projection match F-11…F-20 | F2, F9, B5 | `packages/domain/test/*.test.ts` **T-04…T-10** | ◐ (domain ☑) |
 | WAC-11 | Completion immediate and reversible | F9, B3 | `goal-completion.test.ts`, pgTAP trigger (both directions) | ☐ |
 | WAC-12 | Couple contributions visible with names; nothing else | F10, B2, B8 | `couple-privacy.test.ts`, pgTAP four-role suite, `e2e/couple-two-user` | ☐ |
-| WAC-13 | Insights correct across timezone and month boundaries | F2, F8, B3 | `domain/period.test.ts` **T-13, T-14**, pgTAP `spending_series` | ☐ |
-| WAC-14 | Non-base entry stored with original; preview == saved | F7, B6 | `conversion-preview.test.ts`, `domain/fx.test.ts` **T-11** | ☐ |
+| WAC-13 | Insights correct across timezone and month boundaries | F2, F8, B3 | `packages/domain/test/*.test.ts` **T-13, T-14**, pgTAP `spending_series` | ◐ (domain ☑) |
+| WAC-14 | Non-base entry stored with original; preview == saved | F7, B6 | `conversion-preview.test.ts`, `packages/domain/test/*.test.ts` **T-11** | ◐ (domain ☑) |
 | WAC-15 | Base-currency change re-expresses, preserves originals | F11, B6 | `e2e/flows/7.10`, `recalc.test.ts` | ☐ |
 | WAC-16 | Core flows on 4 desktop browsers + mobile viewports | F13, B11 | Playwright project matrix | ☐ |
 | WAC-17 | Offline expense syncs once, no duplicate | F12, B8 | `e2e/offline.spec.ts` | ☐ |
@@ -73,22 +73,22 @@ re-verified at the API layer where noted.
 
 | T | Case | Phase | Test | Status |
 |---|---|---|---|---|
-| T-01 | Totals 1,200 / 570 / 300 → net 630, remaining 330, rate 25.0% | F2 | `domain/summary.test.ts` | ☐ |
-| T-02 | Zero income → rate N/A, remaining −50, no exception | F2 | `domain/summary.test.ts` | ☐ |
-| T-03 | Contribution leaves expenses unchanged, saved +100 | F2, B3 | `domain/summary.test.ts`, pgTAP `period_summary` | ☐ |
-| T-04 | Target 1,200, balance 600 → 50%, remaining 600 | F2 | `domain/goal.test.ts` | ☐ |
-| T-05 | Balance 1,300 on 1,200 → 100%, remaining 0, COMPLETED | F2 | `domain/goal.test.ts` | ☐ |
-| T-06 | Target date today, remaining 60 → 60/day, no ÷0 | F2 | `domain/goal.test.ts` | ☐ |
-| T-07 | Target date yesterday, incomplete → BEHIND, overdue | F2 | `domain/goal.test.ts` | ☐ |
-| T-08 | Couple goal A 480 / B 320 on 2,000 → 60% / 40% | F2 | `domain/goal.test.ts` | ☐ |
-| T-09 | Thresholds 0.95 / 0.9499 / 0.75 / 0.7499 | F2 | `domain/goal.test.ts` | ☐ |
-| T-10 | New goal, zero contributions, day 0 → ON_TRACK | F2 | `domain/goal.test.ts` | ☐ |
-| T-11 | 5,000 LRD @ 189.39 → $26.40 (half away from zero) | F2, B6 | `domain/fx.test.ts`, API integration | ☐ |
-| T-12 | JPY exponent 0, KWD exponent 3 | F2, B1, B6 | `domain/money.test.ts`, seed test | ☐ |
-| T-13 | 23:30 31 Aug: Monrovia vs Tokyo → correct local month | F2, B3 | `domain/period.test.ts`, pgTAP `spending_series` | ☐ |
-| T-14 | Week boundaries → ISO Monday start | F2, B3 | `domain/period.test.ts`, pgTAP | ☐ |
-| T-15 | Avg daily: day 17 of current vs full previous month | F2 | `domain/summary.test.ts` | ☐ |
-| T-16 | Previous period = 0 → "New" | F2 | `domain/summary.test.ts` | ☐ |
+| T-01 | Totals 1,200 / 570 / 300 → net 630, remaining 330, rate 25.0% | F2 | `packages/domain/test/spec-cases.test.ts` | ☑ |
+| T-02 | Zero income → rate N/A, remaining −50, no exception | F2 | `packages/domain/test/spec-cases.test.ts` | ☑ |
+| T-03 | Contribution leaves expenses unchanged, saved +100 | F2, B3 | `packages/domain/test/spec-cases.test.ts`, pgTAP `period_summary` | ◐ (domain ☑) |
+| T-04 | Target 1,200, balance 600 → 50%, remaining 600 | F2 | `packages/domain/test/spec-cases.test.ts` | ☑ |
+| T-05 | Balance 1,300 on 1,200 → 100%, remaining 0, COMPLETED | F2 | `packages/domain/test/spec-cases.test.ts` | ☑ |
+| T-06 | Target date today, remaining 60 → 60/day, no ÷0 | F2 | `packages/domain/test/spec-cases.test.ts` | ☑ |
+| T-07 | Target date yesterday, incomplete → BEHIND, overdue | F2 | `packages/domain/test/spec-cases.test.ts` | ☑ |
+| T-08 | Couple goal A 480 / B 320 on 2,000 → 60% / 40% | F2 | `packages/domain/test/spec-cases.test.ts` | ☑ |
+| T-09 | Thresholds 0.95 / 0.9499 / 0.75 / 0.7499 | F2 | `packages/domain/test/spec-cases.test.ts` | ☑ |
+| T-10 | New goal, zero contributions, day 0 → ON_TRACK | F2 | `packages/domain/test/spec-cases.test.ts` | ☑ |
+| T-11 | 5,000 LRD @ 189.39 → $26.40 (half away from zero) | F2, B6 | `packages/domain/test/spec-cases.test.ts`, API integration | ◐ (domain ☑) |
+| T-12 | JPY exponent 0, KWD exponent 3 | F2, B1, B6 | `packages/domain/test/spec-cases.test.ts`, seed test | ◐ (domain ☑) |
+| T-13 | 23:30 31 Aug: Monrovia vs Tokyo → correct local month | F2, B3 | `packages/domain/test/spec-cases.test.ts`, pgTAP `spending_series` | ◐ (domain ☑) |
+| T-14 | Week boundaries → ISO Monday start | F2, B3 | `packages/domain/test/spec-cases.test.ts`, pgTAP | ◐ (domain ☑) |
+| T-15 | Avg daily: day 17 of current vs full previous month | F2 | `packages/domain/test/spec-cases.test.ts` | ☑ |
+| T-16 | Previous period = 0 → "New" | F2 | `packages/domain/test/spec-cases.test.ts` | ☑ |
 
 ## Business rules (BR-01…BR-18) — where each is enforced
 

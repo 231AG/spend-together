@@ -115,8 +115,8 @@ deleting any branch's test turns CI red.
 
 ## 6. Tooling
 
-`decimal.js` 10.6.0 and `date-fns-tz` 3.2.0 — the package's only two runtime
-dependencies, and a third requires an ADR. `@vitest/coverage-v8` for the gate. The
+`decimal.js` 10.6.0 — the package's only runtime dependency (ADR-011 replaced
+`date-fns-tz` with the platform's `Intl.DateTimeFormat`); a second requires an ADR. `@vitest/coverage-v8` for the gate. The
 `money-handling` project skill is **created here** and is loaded by every later ticket
 that touches an amount.
 
@@ -138,7 +138,7 @@ end-to-end later, but the arithmetic they check is proven here.
 3. T-01…T-16 all pass and are individually tagged.
 4. The §6.5 worked example reproduces in full, including the status check at ratio 1.17.
 5. The §10.5 required-pace payload reproduces exactly (ADR-004 verified).
-6. The package imports nothing but `decimal.js` and `date-fns-tz` — asserted by a test
+6. The package imports nothing but `decimal.js` (ADR-011) — asserted by a test
    that reads its own `package.json` and by the import-boundary lint rule.
 7. No ambient `Date` anywhere in the package; the clock is a parameter.
 8. A conversion rounding below one minor unit returns a typed result, not an exception.
@@ -148,7 +148,7 @@ end-to-end later, but the arithmetic they check is proven here.
 | Risk | Mitigation |
 |---|---|
 | R-03 rounding bugs | 100% branch coverage, explicit `.5` boundary tables, branded types making float math a compile error |
-| R-05 timezone errors | `date-fns-tz` with injected clock; T-13/T-14/T-15 are mandated and non-negotiable |
+| R-05 timezone errors | `Intl.DateTimeFormat` time-zone conversion (ADR-011) with injected clock; T-13/T-14/T-15 are mandated and non-negotiable |
 | R-09 the coverage gate stalls unrelated work | The package is written once, here, with its tests; later phases import rather than extend it |
 | ADR-004 is overturned after implementation | The pace calculation is one function with one rounding site; reversing it is a half-day, not a rewrite |
 | `decimal.js` precision defaults are insufficient for `numeric(24,10)` rates | Configure precision explicitly at module load and assert it in a test |
@@ -165,3 +165,16 @@ unambiguous but the edge cases are where the time goes.
 Owner reviews: the coverage report showing 100% on this package; a test run listing all
 sixteen T- IDs passing; the §6.5 and §10.5 reproductions; and confirmation that ADR-004
 matches intent. Then F3 may start.
+
+## 12. As built (28 Sep 2026)
+
+- Files: `src/{money,period,summary,goal,fx,result,index}.ts`; tests in `test/`
+  (`spec-cases.test.ts` carries T-01…T-16 by name, `reference-dataset.test.ts` reproduces
+  §6.5 and the §10.5 pace payload, plus `money`, `period`, `formulas` (edges and property
+  tests) and `purity`).
+- 86 tests, 100% statements / branches / functions / lines; `pnpm test:domain` runs in CI.
+- Deviations, each in `docs/plans/00-shared/decision-log.md`: `date-fns-tz` replaced by
+  `Intl.DateTimeFormat` (ADR-011, D-05); `errors.ts` is `result.ts` (D-07); multiplying two
+  `MoneyMinor` values is caught by lint and review, not the compiler (D-06).
+- §6.5 status check: expected 511.48, ratio 1.17 → `on_track`. F-18 on the reference
+  history is 8.33/day, projecting 28 Nov (Q9 closed, D-04).

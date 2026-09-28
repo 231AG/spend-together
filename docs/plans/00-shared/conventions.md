@@ -47,7 +47,7 @@ except the raw payload types.
   displayed.
 - Dates on the wire are `YYYY-MM-DD` for dates and RFC 3339 UTC with `Z` for timestamps.
 - **No `new Date()` or `Date.now()` outside `lib/clock.ts`.** Enforced by lint. Period
-  boundaries are computed in the user's IANA timezone (BR-16) via `date-fns-tz`.
+  boundaries are computed in the user's IANA timezone (BR-16) via `Intl.DateTimeFormat` (ADR-011).
 - Reference dataset for every fixture, mockup and example: spec §6.5. Never the design
   boards.
 

@@ -117,7 +117,7 @@ apps/web/app        →  may import  components, lib, server, packages/*
 apps/web/server     →  may import  lib, packages/*            (never components)
 apps/web/components →  may import  lib, packages/*            (never server)
 packages/schemas    →  may import  nothing but zod
-packages/domain     →  may import  nothing but decimal.js + date-fns-tz
+packages/domain     →  may import  nothing but decimal.js (ADR-011)
 ```
 
 F0 enforces this with an ESLint boundary rule, not a convention.

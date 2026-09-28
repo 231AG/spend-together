@@ -3,7 +3,7 @@
 //   apps/web/server     may not import apps/web/components
 //   apps/web/components may not import apps/web/server
 //   packages/schemas    may import nothing but zod (and its own files)
-//   packages/domain     may import nothing but decimal.js and date-fns-tz (and its own files)
+//   packages/domain     may import nothing but decimal.js (and its own files); ADR-011
 //
 // The purity rule covers production source (`src/`, excluding `*.test.ts`); test and
 // tooling files in those packages may use test and build dependencies.
@@ -12,7 +12,7 @@
 import path from 'node:path';
 
 const PURE = {
-  'packages/domain/': new Set(['decimal.js', 'date-fns-tz']),
+  'packages/domain/': new Set(['decimal.js']),
   'packages/schemas/': new Set(['zod']),
 };
 

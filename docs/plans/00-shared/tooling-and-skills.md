@@ -74,7 +74,7 @@ without a matching committed migration.
 | Package | Version | Purpose | Phase | Req? | Verified |
 |---|---|---|---|:-:|:-:|
 | `decimal.js` | 10.6.0 | FX rate arithmetic (§6.1) | F2 | Required | ✅ |
-| `date-fns-tz` | 3.2.0 | IANA-aware period boundaries, ISO weeks (BR-16) | F2 | Required | ✅ |
+| ~~`date-fns-tz`~~ | — | Dropped by ADR-011: `Intl.DateTimeFormat` does the one time-zone step | F2 | Removed | — |
 
 Any third runtime dependency here needs an ADR. The purity of this package is a
 non-negotiable rule in `CLAUDE.md`.

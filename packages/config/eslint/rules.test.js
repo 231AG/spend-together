@@ -64,10 +64,6 @@ tester.run('import-boundaries', importBoundaries, {
     { code: "import { z } from 'zod';", filename: at('packages/schemas/src/a.ts') },
     { code: "import { b } from './b';", filename: at('packages/schemas/src/a.ts') },
     { code: "import Decimal from 'decimal.js';", filename: at('packages/domain/src/fx.ts') },
-    {
-      code: "import { formatInTimeZone } from 'date-fns-tz';",
-      filename: at('packages/domain/src/period.ts'),
-    },
     { code: "import { x } from '@/lib/clock';", filename: at('apps/web/server/services/a.ts') },
     { code: "import { it } from 'vitest';", filename: at('packages/domain/src/money.test.ts') },
     {
@@ -98,6 +94,11 @@ tester.run('import-boundaries', importBoundaries, {
     {
       code: "import { z } from 'zod';",
       filename: at('packages/domain/src/a.ts'),
+      errors: [{ messageId: 'pure' }],
+    },
+    {
+      code: "import { formatInTimeZone } from 'date-fns-tz';",
+      filename: at('packages/domain/src/period.ts'),
       errors: [{ messageId: 'pure' }],
     },
     {
