@@ -138,3 +138,25 @@ uncertainty, concentrated in the intercepted-route work.
 Owner reviews: a walk through every route at three breakpoints; Back/Forward through the
 Add dialog; a keyboard-only navigation pass; and the shortcut help dialog. Then F6 may
 start.
+
+## 12. As built (28 Sep 2026)
+
+- Routes: every §12.1 path under `app/` — Welcome at `app/page.tsx`, `(public)` onboarding
+  and invite, `(auth)` register/login/forgot/reset/verify, `(setup)/setup/currency`,
+  `(app)` home, add, activity (+ detail, edit), insights, goals (+ new, detail, edit,
+  contribute), couple, profile (+ 4 subpages), and `offline`. Placeholders name the phase
+  that builds each screen. Filter and view state is URL-bound (`lib/url-state.ts`).
+- Shell: `components/layout/app-shell.tsx` (skip link, header with offline chip slot,
+  recalculating banner overlay, `main#content`, `@modal`, `ConfirmProvider`,
+  `RouteFocus`, `ShortcutLayer`); `session-gate.tsx` with splash and unreachable states.
+- Navigation: `components/features/navigation/` (tabs, rail, sidebar with user card);
+  `add-sheet.tsx` (three rows, goal step, FAB / rail + / sidebar Add); swipe-down to
+  dismiss sheets added to `Dialog`.
+- Shortcuts: `components/features/shortcuts/` (pure handler, layer, help dialog, Profile
+  toggle).
+- Tests: unit (`safe-next`, shortcuts, navigation with axe) and Playwright
+  `e2e/shell.spec.ts` at 360/768/1280: Back/Forward/refresh through the Add dialog, focus
+  return, the savings goal step, nav treatment and dimensions, reachability and URL
+  filters across reload, signed-out/signed-in redirects with safe `next`, skip link,
+  shortcuts and their input guard, `/offline`, and axe on five routes.
+- Decisions D-42…D-51.

@@ -31,7 +31,9 @@ export const GLOBAL_ADD_ATTR = 'data-global-add';
 export function focusGlobalAdd(): boolean {
   const candidates = document.querySelectorAll<HTMLElement>(`[${GLOBAL_ADD_ATTR}]`);
   for (const el of candidates) {
-    if (el.offsetParent !== null) {
+    // getClientRects, not offsetParent: the FAB is position:fixed, whose offsetParent is
+    // always null even when visible. display:none gives no rects.
+    if (el.getClientRects().length > 0) {
       el.focus();
       return true;
     }

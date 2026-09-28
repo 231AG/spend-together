@@ -16,8 +16,12 @@ export function RouteFocus({ containerId = 'content' }: { containerId?: string }
       first.current = false;
       return;
     }
-    const heading = document.querySelector<HTMLElement>(`#${containerId} h1`);
-    if (!heading) return;
+    const container = document.getElementById(containerId);
+    const heading = container?.querySelector<HTMLElement>('h1');
+    if (!container || !heading) return;
+    // The new page already placed focus deliberately (e.g. Activity's search via `/`).
+    const active = document.activeElement;
+    if (active && active !== document.body && container.contains(active)) return;
     if (!heading.hasAttribute('tabindex')) heading.setAttribute('tabindex', '-1');
     heading.focus();
   }, [pathname, containerId]);

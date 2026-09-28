@@ -11,7 +11,8 @@
     "test": "vitest run",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build -o storybook-static --quiet",
-    "assert-prod-bundle": "node scripts/assert-prod-bundle.mjs"
+    "assert-prod-bundle": "node scripts/assert-prod-bundle.mjs",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@spendtogether/domain": "workspace:*",
@@ -26,6 +27,8 @@
     "zod": "4.6.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.63.0",
     "@spendtogether/config": "workspace:*",
     "@storybook/addon-a11y": "10.6.0",
     "@storybook/nextjs-vite": "10.6.0",
