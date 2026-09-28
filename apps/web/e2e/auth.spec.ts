@@ -15,7 +15,7 @@ async function axeClean(page: Page) {
 test('§7.1 welcome → onboarding → register → verify → currency → home (WAC-01)', async ({
   page,
 }) => {
-  const started = Date.now();
+  const started = performance.now();
   await useScenario(page, 'signedOut');
   await page.goto('/');
   await expectPage(page, /Know what you earn/);
@@ -59,7 +59,7 @@ test('§7.1 welcome → onboarding → register → verify → currency → home
   await page.getByRole('button', { name: 'Continue' }).click();
   await expectPage(page, 'Home');
   // WAC-01: the whole path, axe included, well inside 90 s.
-  expect(Date.now() - started).toBeLessThan(90_000);
+  expect(performance.now() - started).toBeLessThan(90_000);
 });
 
 test.describe('§7.2 returning user', () => {
