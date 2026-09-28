@@ -56,7 +56,7 @@ contract tests consume **the same fixture files** the MSW handlers use.
 
 ## ADR-003 — Undo is a distinct endpoint: `POST /transactions/:id/restore`
 
-**Status:** **Proposed** — needs the owner's confirmation before F1 closes
+**Status:** **Accepted** 28 Sep 2026 (delegated by owner; decision log D-01)
 **Spec:** §7.4, SCR-13, §10.3 (`DELETE /transactions/:id`)
 
 **Context.** The spec requires a 5-second Undo on a soft-deleted transaction and has
@@ -83,7 +83,7 @@ loses the undo if the tab closes, so this ADR is the recommended path.
 
 ## ADR-004 — Required pace is computed at full precision and rounded exactly once
 
-**Status:** **Proposed** — needs confirmation before F2 closes
+**Status:** **Accepted** 28 Sep 2026 (delegated by owner; decision log D-03)
 **Spec:** §6.3 F-15/F-16/F-17, §6.5, §10.5
 
 **Context.** F-16 reads "F-15 × 7" and F-17 "F-15 × 30.4375". Read literally — using the
@@ -104,7 +104,7 @@ published figures.
 
 ## ADR-005 — A conversion that rounds below one minor unit is rejected, not stored as zero
 
-**Status:** **Proposed** — needs confirmation before F1 closes
+**Status:** **Accepted** 28 Sep 2026 (delegated by owner; decision log D-02)
 **Spec:** §6.1, §9.3 (`check (base_amount_minor > 0)`), §10.2
 
 **Context.** The DDL requires `base_amount_minor > 0`, but F-23 rounds half away from
@@ -257,3 +257,26 @@ leaves some wire shapes open. F1 had to decide them to freeze the contract.
 **Consequences.** The contract is frozen as of this ADR. Any later change to
 `packages/schemas/src` needs a new ADR (enforced by `contract-freeze.yml`) and an update
 to the affected backend phase.
+
+---
+
+## ADR-011 — `packages/domain` uses `Intl.DateTimeFormat`, not `date-fns-tz`
+
+**Status:** **Accepted** 28 Sep 2026 (F2; decision log D-05)
+**Spec:** BR-16, §6.2, T-13, T-14, T-15
+
+**Context.** The plan named `decimal.js` and `date-fns-tz` as the domain's two runtime
+dependencies. `date-fns-tz` 3.x has `date-fns` as a peer, so it is really two packages,
+and the domain needs exactly one time-zone operation: the local calendar date of an
+instant in an IANA zone. Everything after that is calendar arithmetic on `YYYY-MM-DD`.
+
+**Decision.** `localDate(instant, timeZone)` uses `Intl.DateTimeFormat('en-CA', {timeZone})`,
+built into Node 22 and every supported browser with full ICU. Period boundaries, ISO weeks
+and day counts are UTC-midnight arithmetic on calendar dates, which has no DST to get wrong.
+`decimal.js` is the domain's only runtime dependency; the import-boundary lint rule and
+`test/purity.test.ts` both enforce it.
+
+**Consequences.** Two fewer dependencies in the most critical package. T-13, T-14, T-15 and
+DST-edge tests pass. If a future need goes beyond "which local date is this instant"
+(e.g. local wall-clock times for reminders), that code lives outside the domain or needs a
+new ADR.

@@ -12,13 +12,14 @@ Standing rules for every session are in `/CLAUDE.md`.
 docs/plans/
 ├─ README.md                     ← you are here: index, phase order, status
 ├─ 00-shared/
-│  ├─ architecture-decisions.md  ADR log (ADR-001…ADR-008)
+│  ├─ architecture-decisions.md  ADR log (ADR-001…ADR-011)
 │  ├─ repo-structure.md          target monorepo tree, purpose of every package
 │  ├─ conventions.md             naming, branching, commits, style, error handling
 │  ├─ tooling-and-skills.md      skills, MCP servers, packages — versions verified
 │  ├─ traceability-matrix.md     every FR / WAC / T → phase → test
 │  ├─ risk-register.md           R-01…R-15 with mitigations and owner phases
-│  └─ open-questions.md          Q1…Q12 — assumptions in force, decisions needed
+│  ├─ open-questions.md          Q1…Q12 — assumptions in force, decisions needed
+│  └─ decision-log.md            every decision taken on the owner's behalf
 ├─ frontend/
 │  ├─ 00-overview.md             goals, principles, phase map, definition of done
 │  ├─ ux-ui-specification.md     screens, components, microcopy, keyboard, a11y, money
@@ -57,8 +58,8 @@ throwaway and is replaced by real components in F3. Status: **Approved by owner,
 | Phase | Name | Depends on | Est. | Uncertainty | Status |
 |---|---|---|:-:|:-:|---|
 | F0 | Foundation | — | 3 d | Medium | Complete (approved 27 Sep 2026) |
-| F1 | Contract freeze (`packages/schemas`) | F0 | 4 d | Low | **Complete, awaiting owner approval** |
-| F2 | Domain package (`packages/domain`) | F0, F1 | 6 d | Medium | Not started |
+| F1 | Contract freeze (`packages/schemas`) | F0 | 4 d | Low | Complete (merged PR #9; approval delegated 28 Sep 2026) |
+| F2 | Domain package (`packages/domain`) | F0, F1 | 6 d | Medium | **Complete** — 100% coverage, T-01…T-16 pass |
 | F3 | Design system | F0, F2 | 9 d | **High** | Not started |
 | F4 | MSW mock backend | F1, F2 | 6 d | Medium | Not started |
 | F5 | App shell and navigation | F3, F4 | 4 d | Medium | Not started |

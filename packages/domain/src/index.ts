@@ -1,3 +1,7 @@
-// Pure financial formulas land here in F2 (spec §6). This package may import only
-// decimal.js and date-fns-tz, and never reads the wall clock.
-export {};
+// @spendtogether/domain — every financial formula in spec §6, pure and clock-free.
+export * from './result';
+export * from './money';
+export * from './period';
+export * from './summary';
+export * from './goal';
+export * from './fx';
