@@ -56,7 +56,7 @@ Status: ☐ not started · ◐ in progress · ☑ evidenced by a passing test.
 | WAC-09 | Balance always equals sum of contributions | F2, B3, B5 | `packages/domain/test/*.test.ts`, pgTAP `goal_balances` | ◐ (domain ☑) |
 | WAC-10 | Progress/remaining/pace/status/projection match F-11…F-20 | F2, F9, B5 | `packages/domain/test/*.test.ts` **T-04…T-10** | ◐ (domain ☑) |
 | WAC-11 | Completion immediate and reversible | F9, B3 | `goal-completion.test.ts`, pgTAP trigger (both directions) | ☐ |
-| WAC-12 | Couple contributions visible with names; nothing else | F10, B2, B8 | `couple-privacy.test.ts`, pgTAP four-role suite, `e2e/couple-two-user` | ☐ |
+| WAC-12 | Couple contributions visible with names; nothing else | F10, B2, B8 | `couple-privacy.test.ts`, pgTAP four-role suite, `e2e/couple-two-user`, `apps/web/mocks/privacy.test.ts` (F4, mock) | ◐ (mock ☑) |
 | WAC-13 | Insights correct across timezone and month boundaries | F2, F8, B3 | `packages/domain/test/*.test.ts` **T-13, T-14**, pgTAP `spending_series` | ◐ (domain ☑) |
 | WAC-14 | Non-base entry stored with original; preview == saved | F7, B6 | `conversion-preview.test.ts`, `packages/domain/test/*.test.ts` **T-11** | ◐ (domain ☑) |
 | WAC-15 | Base-currency change re-expresses, preserves originals | F11, B6 | `e2e/flows/7.10`, `recalc.test.ts` | ☐ |

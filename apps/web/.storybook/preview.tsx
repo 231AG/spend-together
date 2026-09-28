@@ -1,10 +1,15 @@
 import type { Preview } from '@storybook/nextjs-vite';
+import { mswLoader } from 'msw-storybook-addon/csf3';
+import { handlers } from '../mocks/handlers';
 import '../app/globals.css';
 import './fonts.css';
 
 const preview: Preview = {
+  // F4-11: stories that fetch are answered by the same handlers as dev and tests.
+  loaders: [mswLoader()],
   parameters: {
     layout: 'padded',
+    msw: [...handlers],
     controls: { expanded: true },
     // axe runs on every story; a violation fails the story in the a11y panel and in CI
     // (components/ui/stories.a11y.test.tsx runs the same stories through axe).
