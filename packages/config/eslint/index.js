@@ -56,6 +56,33 @@ export default tseslint.config(
     settings: { next: { rootDir: 'apps/web/' } },
   },
   {
+    // F4: the mock computes through packages/domain, never by itself. Arithmetic on a
+    // money-named value (amount, *Minor) and direct decimal.js use are banned in mocks/.
+    files: ['apps/web/mocks/**/*.ts'],
+    ignores: ['apps/web/mocks/**/*.test.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'decimal.js',
+              message: 'Use @spendtogether/domain; the mock must not do its own maths.',
+            },
+          ],
+        },
+      ],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            ':matches(BinaryExpression[operator=/^[-+*\\/%]$/], AssignmentExpression[operator=/^[-+*\\/%]=$/]) > :matches(Identifier[name=/minor|amount/i], MemberExpression[property.name=/minor|amount/i])',
+          message: 'Money arithmetic belongs in packages/domain (F4 exit criterion 2).',
+        },
+      ],
+    },
+  },
+  {
     // Tokens only in UI code (spec §18). Library code (lib/) formats values, not visuals.
     files: ['apps/web/{app,components}/**/*.{ts,tsx}', 'apps/web/**/*.stories.tsx'],
     rules: { 'spendtogether/no-hardcoded-design-values': 'error' },

@@ -4,6 +4,8 @@ import type { NextConfig } from 'next';
 import './lib/env';
 
 const nextConfig: NextConfig = {
+  // The repo's own CLAUDE.md is the one source of agent rules; don't generate others.
+  agentRules: false,
   transpilePackages: ['@spendtogether/domain', '@spendtogether/schemas'],
 };
 

@@ -178,3 +178,24 @@ Owner reviews: the contract conformance report showing every endpoint handled; t
 privacy sweep passing; the three spec payloads reproduced; and a live walk through the
 scenario switcher showing empty, error, offline, zero-income and couple states. Then F5
 may start.
+
+## 12. As built (28 Sep 2026)
+
+- `apps/web/mocks/`: `db.ts` (store and rules), `fx.ts` (F-22…F-24 via the domain),
+  `serialize.ts` and `compute.ts` (wire objects, goal metrics, home, insights, activity),
+  `http.ts` (registry endpoint → MSW handler: input and output parsed with the frozen
+  schemas, auth, idempotency, scenario latency/offline/errors), `handlers/` (42 endpoints),
+  `fixtures/` (the shared dataset and 9 variants), `scenarios.ts`, `clock.ts`, `ids.ts`,
+  `browser.ts`, `server.ts`, `start.ts`.
+- `app/providers.tsx`: React Query plus a gate that starts the worker before the first
+  request in mock mode; `components/dev/scenario-switcher.tsx`, dev builds only.
+- Storybook: `msw-storybook-addon` with the same handlers; `public/mockServiceWorker.js`.
+- Tests: `contract.test.ts` (every endpoint called through the typed client, which
+  validates every response), `rules.test.ts` (§6.5, §10.5, §16.3 reproduced; idempotency,
+  BR-09/10/11/14/15/17/18, ADR-005, COUPLE_REQUIRED, GOAL_ARCHIVED, auth lockout,
+  WAC-15 recalculation, scenarios), `privacy.test.ts` (adversarial walk both ways, 404 not
+  403). The sweep was mutation-tested: exposing individual goals fails it.
+- CI: `assert-prod-bundle` after `next build`; proven to fail when the switcher ships.
+- §10.5 differs in two fields by decision D-04 (Q9): `current_pace_daily` 833 and
+  `projected_completion_date` 2026-11-28, from F-18 over the history.
+- Decisions D-29…D-41.

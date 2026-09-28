@@ -75,7 +75,7 @@ Node 22.12+, pnpm 12 (pinned by `packageManager`; run `corepack enable` once). C
 
 ```
 pnpm install            # install workspace dependencies
-pnpm dev                # run apps/web (API mode from NEXT_PUBLIC_API_MODE; MSW arrives in F4)
+pnpm dev                # run apps/web; NEXT_PUBLIC_API_MODE=mock serves the MSW mock API (F4)
 pnpm build              # build all packages and the web app
 pnpm typecheck          # tsc --noEmit across the workspace
 pnpm lint               # eslint, incl. no-float-money, import-boundaries, no-ambient-date

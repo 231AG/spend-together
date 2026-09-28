@@ -3,3 +3,5 @@ packages:
   - packages/*
 allowBuilds:
   esbuild: true
+  # msw's postinstall only refreshes public/mockServiceWorker.js, which is committed.
+  msw: false
