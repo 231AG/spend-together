@@ -1,5 +1,7 @@
+import { announceMockConnectivity } from '@/lib/connectivity';
 import { worker } from './browser';
 import { restoreScenario } from './persist';
+import { scenario } from './scenarios';
 
 let started: Promise<void> | null = null;
 
@@ -10,6 +12,7 @@ let started: Promise<void> | null = null;
 export function startMockWorker(): Promise<void> {
   started ??= (async () => {
     restoreScenario();
+    announceMockConnectivity(scenario().offline);
     await worker.start({
       onUnhandledRequest: 'bypass',
       quiet: true,

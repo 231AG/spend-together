@@ -1,4 +1,5 @@
 import { CalendarDays } from 'lucide-react';
+import Link from 'next/link';
 import { cn } from '@/lib/cn';
 import { formatShortDate } from '@/lib/format-date';
 import { formatMoney, type MoneyDisplay } from '@/lib/format-money';
@@ -32,7 +33,7 @@ export function GoalCard({ goal, href, compact = false, locale }: GoalCardProps)
   const target = formatMoney(goal.target);
   const pct = `${Math.round(goal.progressPct * 10) / 10}%`;
   return (
-    <a
+    <Link
       href={href}
       className={cn(
         'flex flex-col gap-3 rounded-lg border border-border-default bg-bg-card shadow-elev-1 hover:border-border-input',
@@ -65,6 +66,6 @@ export function GoalCard({ goal, href, compact = false, locale }: GoalCardProps)
           </span>
         </span>
       )}
-    </a>
+    </Link>
   );
 }

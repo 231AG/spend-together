@@ -1,4 +1,5 @@
 import { ArrowDownLeft, ArrowUpRight, PiggyBank } from 'lucide-react';
+import Link from 'next/link';
 import { cn } from '@/lib/cn';
 import { formatDay } from '@/lib/format-date';
 import { formatMoney, type MoneyDisplay } from '@/lib/format-money';
@@ -103,9 +104,9 @@ export function TransactionRow({ row, baseCurrency, onPress, href, locale }: Tra
   const classes = 'flex w-full items-start gap-3 rounded-md px-2 py-3 text-left hover:bg-bg-subtle';
   if (href) {
     return (
-      <a href={href} aria-label={name} className={classes}>
+      <Link href={href} aria-label={name} className={classes}>
         {content}
-      </a>
+      </Link>
     );
   }
   return (

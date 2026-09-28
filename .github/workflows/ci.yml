@@ -40,3 +40,13 @@ jobs:
       - run: pnpm --filter @spendtogether/web assert-prod-bundle
       # F3: the Storybook build is the design-system review artefact; it must always build.
       - run: pnpm --filter @spendtogether/web build-storybook
+      # F5: browser tests (history through route dialogs, redirects, keyboard, axe) at
+      # 360 / 768 / 1280 px against the production build in mock mode.
+      - run: pnpm --filter @spendtogether/web exec playwright install --with-deps chromium
+      - run: pnpm --filter @spendtogether/web e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: apps/web/test-results
+          retention-days: 7
