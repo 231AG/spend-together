@@ -60,7 +60,7 @@ throwaway and is replaced by real components in F3. Status: **Approved by owner,
 | F0 | Foundation | — | 3 d | Medium | Complete (approved 27 Sep 2026) |
 | F1 | Contract freeze (`packages/schemas`) | F0 | 4 d | Low | Complete (merged PR #9; approval delegated 28 Sep 2026) |
 | F2 | Domain package (`packages/domain`) | F0, F1 | 6 d | Medium | **Complete** — 100% coverage, T-01…T-16 pass |
-| F3 | Design system | F0, F2 | 9 d | **High** | Not started |
+| F3 | Design system | F0, F2 | 9 d | **High** | In progress — F3a (tokens, type, money, lint) done; F3b (components, Storybook) next |
 | F4 | MSW mock backend | F1, F2 | 6 d | Medium | Not started |
 | F5 | App shell and navigation | F3, F4 | 4 d | Medium | Not started |
 | F6 | Auth and onboarding UI | F3, F4, F5 | 4 d | Low | Not started |

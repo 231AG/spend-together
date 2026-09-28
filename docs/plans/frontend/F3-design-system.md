@@ -193,3 +193,21 @@ shows every variant and state. Specifically: the palette rendered with measured 
 ratios; `AmountInput` in base, foreign and too-small cases; the status chips proving
 meaning without colour; the empty, loading and error components; and a green axe report.
 Then F4 may start.
+
+## 12. As built
+
+**F3a (28 Sep 2026)** — F3-01…F3-05 and the exit-criterion-7 lint rule.
+
+- `packages/config/tailwind/tokens.css`: every §17–18 token under the spec's name, plus the
+  derived tokens listed in decision D-20; reduced-motion override.
+- `apps/web/app/globals.css`: Tailwind's defaults reset, tokens mapped with
+  `@theme inline reference`, `type-*` and `num` utilities, base focus ring (D-18).
+- `packages/config/tailwind/contrast.test.ts`: §17.1's published ratios reproduce; every
+  text pair ≥ 4.5:1 and every non-text UI pair ≥ 3:1. Found `fg-muted` on `bg-subtle` at
+  4.39:1 → forbidden pair (D-16).
+- `apps/web/app/fonts.ts`: self-hosted via `next/font/local` (D-17).
+- `apps/web/lib/format-money.ts`: §11.4 rules, exact decimal strings into Intl, U+2212
+  minus, ISO code on non-base amounts, `≈` line (D-19).
+- `spendtogether/no-hardcoded-design-values` lint rule (D-21).
+
+**F3b** — components, Storybook and the axe gate: next.
