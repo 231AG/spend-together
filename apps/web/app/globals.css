@@ -240,6 +240,52 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Motion utilities. Durations are tokens, so reduced motion collapses them (§18). */
+@keyframes st-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes st-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+@keyframes st-appear {
+  to {
+    opacity: 1;
+  }
+}
+@utility spin {
+  animation: st-spin var(--dur-spin) linear infinite;
+}
+/* Skeletons appear only after --delay-skeleton, so fast loads never flash (§19.1). */
+@utility skeleton {
+  opacity: 0;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--skeleton) 30%, var(--bg-app) 50%, var(--skeleton) 70%);
+  background-size: 200% 100%;
+  animation:
+    st-appear var(--dur-fade) var(--delay-skeleton) forwards,
+    st-shimmer var(--dur-shimmer) linear infinite;
+  @media (prefers-reduced-motion: reduce) {
+    background: var(--skeleton);
+    animation: st-appear var(--dur-fade) var(--delay-skeleton) forwards;
+  }
+}
+/* A tile tinted by its category colour; set --cat on the element. Text stays fg-default. */
+@utility cat-tile {
+  background: color-mix(in srgb, var(--cat, var(--cat-other)) var(--tint-strength), var(--bg-card));
+  color: var(--fg-default);
+}
+@utility focus-ring {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;

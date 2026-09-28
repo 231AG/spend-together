@@ -5,3 +5,4 @@ design-preview/
 **/dist/
 **/coverage/
 *.md
+storybook-static/

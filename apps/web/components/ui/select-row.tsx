@@ -1,0 +1,49 @@
+import { ChevronRight } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { cn } from '@/lib/cn';
+
+// Spec §14.3 SelectRow: a settings row with a chevron. It is one control whose accessible
+// name includes both the label and the current value.
+
+export interface SelectRowProps {
+  label: string;
+  value?: string;
+  icon?: ReactNode;
+  href?: string;
+  onClick?: () => void;
+  className?: string;
+}
+
+export function SelectRow({ label, value, icon, href, onClick, className }: SelectRowProps) {
+  const content = (
+    <>
+      {icon && (
+        <span
+          aria-hidden
+          className="inline-grid size-(--icon-tile) place-items-center rounded-md bg-bg-subtle text-fg-default"
+        >
+          {icon}
+        </span>
+      )}
+      <span className="flex-1 type-body-lg text-fg-default">{label}</span>
+      {value && <span className="type-body-sm text-fg-muted">{value}</span>}
+      <ChevronRight aria-hidden className="size-(--icon-md) text-fg-muted" strokeWidth={1.75} />
+    </>
+  );
+  const classes = cn(
+    'flex w-full min-h-12 items-center gap-3 px-4 py-2 text-left hover:bg-bg-subtle',
+    className,
+  );
+  if (href) {
+    return (
+      <a href={href} className={classes}>
+        {content}
+      </a>
+    );
+  }
+  return (
+    <button type="button" onClick={onClick} className={classes}>
+      {content}
+    </button>
+  );
+}

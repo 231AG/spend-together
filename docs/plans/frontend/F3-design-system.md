@@ -210,4 +210,19 @@ Then F4 may start.
   minus, ISO code on non-base amounts, `≈` line (D-19).
 - `spendtogether/no-hardcoded-design-values` lint rule (D-21).
 
-**F3b** — components, Storybook and the axe gate: next.
+**F3b (28 Sep 2026)** — F3-06…F3-15.
+
+- `apps/web/components/ui/`: Button, IconButton, Input, Textarea, AmountInput,
+  CurrencyPicker, CategoryPicker, DatePicker, SelectRow, SegmentedControl/PeriodSelector,
+  FilterChip, MetricCard/SummaryMetric (+ DeltaChip), TransactionRow, GoalCard, ProgressBar,
+  StatusChip, Dialog/BottomSheet, ConfirmationDialog, Toast, EmptyState, LoadingSkeleton,
+  ErrorState, ChartContainer, OfflineSyncIndicator (the 23 of §14.3), plus Field,
+  MoneyText, CategoryIcon and the shared Picker.
+- `lib/`: `amount-entry`, `conversion-preview` (domain `convert`, so preview == saved),
+  `category-visuals` (F3-15), `format-date`, `use-media-query`.
+- Storybook 10 (`@storybook/nextjs-vite`) with the a11y addon: 49 stories, built in CI.
+- `stories.a11y.test.tsx`: axe on every story (D-22). `components.test.tsx`: keyboard,
+  focus and ARIA behaviour (Enter/Space, arrow keys and Tab out, focus trap/Esc/return,
+  Cancel first, toast Undo, table toggle, sentence-like row names).
+- Deviations: native date input everywhere (D-23); option buttons in pickers (D-24);
+  illustrations deferred (D-26). The MSW Storybook addon arrives with F4.
