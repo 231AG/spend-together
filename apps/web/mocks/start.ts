@@ -1,5 +1,7 @@
+import { setAppClock } from '@/lib/clock';
 import { announceMockConnectivity } from '@/lib/connectivity';
 import { worker } from './browser';
+import { mockClock } from './clock';
 import { restoreScenario } from './persist';
 import { scenario } from './scenarios';
 
@@ -12,6 +14,7 @@ let started: Promise<void> | null = null;
 export function startMockWorker(): Promise<void> {
   started ??= (async () => {
     restoreScenario();
+    setAppClock(mockClock);
     announceMockConnectivity(scenario().offline);
     await worker.start({
       onUnhandledRequest: 'bypass',

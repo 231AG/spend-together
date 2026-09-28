@@ -30,6 +30,13 @@ export interface AmountInputProps {
   hint?: ReactNode;
   disabled?: boolean;
   name?: string;
+  autoFocus?: boolean;
+  /**
+   * Controlled entry text. A form that lets the currency change passes the text so it can
+   * re-read the same digits at the new currency's exponent (12.50 USD → 12.50 EUR).
+   */
+  text?: string;
+  onTextChange?: (text: string) => void;
 }
 
 function entryError(kind: string, currency: CurrencyInfo): string | null {
@@ -72,15 +79,20 @@ export function AmountInput({
   hint,
   disabled,
   name,
+  autoFocus,
+  text: controlledText,
+  onTextChange,
 }: AmountInputProps) {
-  const [text, setText] = useState(() => entryFromMinor(value, currency.exponent));
-  const [entryProblem, setEntryProblem] = useState<string | null>(null);
+  const [ownText, setOwnText] = useState(() => entryFromMinor(value, currency.exponent));
+  const text = controlledText ?? ownText;
+  // Derived, so a currency change re-judges the same digits.
+  const entryProblem = entryError(readEntry(text, currency.exponent).kind, currency);
 
   function handleChange(raw: string) {
     const next = sanitiseEntry(raw);
-    setText(next);
+    if (onTextChange) onTextChange(next);
+    else setOwnText(next);
     const result = readEntry(next, currency.exponent);
-    setEntryProblem(entryError(result.kind, currency));
     onValueChange(result.kind === 'ok' ? result.minor : null);
   }
 
@@ -111,6 +123,8 @@ export function AmountInput({
             placeholder={currency.exponent === 0 ? '0' : `0.${'0'.repeat(currency.exponent)}`}
             value={text}
             disabled={disabled}
+            // The amount is the first thing typed (SCR-10/11, "under 10 seconds").
+            autoFocus={autoFocus}
             onChange={(e) => {
               handleChange(e.target.value);
             }}
