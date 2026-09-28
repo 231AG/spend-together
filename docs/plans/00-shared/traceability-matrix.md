@@ -14,11 +14,11 @@ Status: ☐ not started · ◐ in progress · ☑ evidenced by a passing test.
 
 | FR | Requirement (abbreviated) | Phase(s) | Test(s) | Status |
 |---|---|---|---|---|
-| FR-01 | Register; duplicates rejected non-revealingly | F6, B4 | `e2e/flows/7.1`, `auth.register.test.ts` (enumeration) | ☐ |
-| FR-02 | Login; session persists across reloads | F6, B4 | `e2e/flows/7.2`, `auth.session.test.ts` | ☐ |
+| FR-01 | Register; duplicates rejected non-revealingly | F6, B4 | `apps/web/e2e/auth.spec.ts` (§7.1), `auth-forms.test.tsx` (F6), `auth.register.test.ts` (enumeration) | ◐ (UI ☑) |
+| FR-02 | Login; session persists across reloads | F6, B4 | `apps/web/e2e/auth.spec.ts` (§7.2, lockout), `auth-forms.test.tsx` (F6), `auth.session.test.ts` | ◐ (UI ☑) |
 | FR-03 | Logout ends the session | F11, B4 | `auth.logout.test.ts`, `e2e/logout-clears-stores` | ☐ |
-| FR-04 | Forgot/reset via email link or SMS code | F6, B4 | `e2e/flows/7.2`, `auth.reset.test.ts` | ☐ |
-| FR-05 | First-run base currency + timezone | F6, B5 | `e2e/flows/7.1`, `me.patch.test.ts` | ☐ |
+| FR-04 | Forgot/reset via email link or SMS code | F6, B4 | `apps/web/e2e/auth.spec.ts` (§7.2), `auth-forms.test.tsx` (F6), `auth.reset.test.ts` | ◐ (UI ☑) |
+| FR-05 | First-run base currency + timezone | F6, B5 | `apps/web/e2e/auth.spec.ts` (§7.1), `auth-input.test.ts`, `auth-forms.test.tsx` (F6), `me.patch.test.ts` | ◐ (UI ☑) |
 | FR-06 | Add income | F7, B5 | `e2e/flows/7.3`, `transactions.create.test.ts` | ☐ |
 | FR-07 | Add expense; recent categories first | F7, B5 | `e2e/flows/7.3`, `categories.recent.test.ts` | ☐ |
 | FR-08 | Edit/delete own transaction; summaries recalculate | F7, B5 | `e2e/flows/7.4`, `transactions.patch.test.ts` | ☐ |
@@ -45,7 +45,7 @@ Status: ☐ not started · ◐ in progress · ☑ evidenced by a passing test.
 
 | WAC | Criterion (abbreviated) | Phase(s) | Test(s) | Status |
 |---|---|---|---|---|
-| WAC-01 | Register → currency → Home < 90 s; no disclosure | F6, B4, B8 | `e2e/flows/7.1` (timed) | ☐ |
+| WAC-01 | Register → currency → Home < 90 s; no disclosure | F6, B4, B8 | `apps/web/e2e/auth.spec.ts` §7.1 (timed, F6 against MSW) | ◐ (UI ☑) |
 | WAC-02 | Sessions survive reload/restart; logout clears all | F6, F11, B4, B8 | `e2e/session-persistence` | ☐ |
 | WAC-03 | Income CRUD updates all affected periods | F7, F8, B5 | `e2e/income-updates-totals` | ☐ |
 | WAC-04 | Same for expenses incl. category totals and % | F7, F8, B5 | `e2e/expense-updates-totals` | ☐ |

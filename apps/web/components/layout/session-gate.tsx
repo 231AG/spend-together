@@ -12,8 +12,9 @@ import { safeNext, withNext } from '@/lib/safe-next';
 //   app:   no session → "/" (keeping ?next=); not onboarded → /setup/currency
 //   setup: no session → "/"; already onboarded → /home
 //   guest: a session → ?next= (same-origin only) or /home
+//   any:   no redirect (verify and reset links work signed in or out)
 
-type Mode = 'app' | 'setup' | 'guest';
+type Mode = 'app' | 'setup' | 'guest' | 'any';
 
 function currentPath(pathname: string, search: URLSearchParams): string {
   const query = search.toString();
@@ -74,6 +75,11 @@ function Unreachable({ onRetry }: { onRetry: () => void }) {
 }
 
 export function SessionGate({ mode, children }: { mode: Mode; children: ReactNode }) {
+  if (mode === 'any') return children;
+  return <GatedSession mode={mode}>{children}</GatedSession>;
+}
+
+function GatedSession({ mode, children }: { mode: Exclude<Mode, 'any'>; children: ReactNode }) {
   const me = useMe();
   const router = useRouter();
   const pathname = usePathname();
@@ -98,8 +104,10 @@ export function SessionGate({ mode, children }: { mode: Mode; children: ReactNod
 
   if (redirect) return <Splash />;
   if (mode === 'guest') {
-    // Guests see the page as soon as we know there is no session (or can't tell).
-    return me.isPending ? <Splash /> : children;
+    // Guests see the page as soon as we know there is no session (or can't tell). A later
+    // refetch (on reconnect) puts a data-less query back to pending; the form must stay
+    // mounted then, or what the person typed is lost.
+    return me.isPending && me.errorUpdatedAt === 0 ? <Splash /> : children;
   }
   if (me.isPending) return <Splash />;
   if (me.isError) {

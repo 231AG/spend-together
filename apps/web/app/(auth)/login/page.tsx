@@ -1,11 +1,14 @@
-import { AuthPlaceholder } from '@/components/features/public/auth-placeholder';
+import { Suspense } from 'react';
+import { LoginForm } from '@/components/features/auth/login-form';
 
-// SCR-05 Login `/login`.
-export default function LoginPage() {
+// SCR-05 Login `/login` (FR-02).
+export default function Page() {
   return (
-    <AuthPlaceholder
-      title="Log in"
-      what="Email or phone and password, with a Forgot password link."
-    />
+    <>
+      <h1 className="type-h2">Log in</h1>
+      <Suspense>
+        <LoginForm />
+      </Suspense>
+    </>
   );
 }

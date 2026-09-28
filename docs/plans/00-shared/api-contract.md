@@ -10,7 +10,7 @@ Base path `/api/v1`. JSON, snake_case, ISO 8601 dates, money as
 codes plus those implied by its shape (session → UNAUTHENTICATED, input →
 VALIDATION_FAILED, path id → NOT_FOUND, writes and auth → RATE_LIMITED, always INTERNAL).
 
-42 endpoints: 23 from §10.3, 18 from §10.4, 1 from ADR-003.
+43 endpoints: 23 from §10.3, 18 from §10.4, 1 from ADR-012, 1 from ADR-003.
 
 | Endpoint | Purpose | Request | Response | Status | Errors | Access | Source | Client key |
 |---|---|---|---|---|---|---|---|---|
@@ -21,6 +21,7 @@ VALIDATION_FAILED, path id → NOT_FOUND, writes and auth → RATE_LIMITED, alwa
 | `POST /auth/forgot-password` | Send reset instructions | body `ForgotPasswordRequest` | `AcknowledgedResponse` | 202 | VALIDATION_FAILED, RATE_LIMITED, INTERNAL | public | §10.4 | `forgotPassword` |
 | `POST /auth/reset-password` | Set a new password | body `ResetPasswordRequest` | — (204) | 204 | UNAUTHENTICATED, VALIDATION_FAILED, RATE_LIMITED, INTERNAL | public | §10.4 | `resetPassword` |
 | `POST /auth/verify` | Confirm an email link or phone code | body `VerifyRequest` | `AuthSession` | 200 | UNAUTHENTICATED, VALIDATION_FAILED, RATE_LIMITED, INTERNAL | public | §10.4 | `verify` |
+| `POST /auth/verify/resend` | Send a new verification code or link | body `ResendVerificationRequest` | `AcknowledgedResponse` | 202 | VALIDATION_FAILED, RATE_LIMITED, INTERNAL | public | ADR-012 | `resendVerification` |
 | `GET /me` | Own profile | — | `Me` | 200 | UNAUTHENTICATED, INTERNAL | session | §10.4 | `getMe` |
 | `PATCH /me` | Update profile, base currency, time zone | body `PatchMeRequest` | `Me` | 200 | UNAUTHENTICATED, VALIDATION_FAILED, RATE_LIMITED, INTERNAL | session | §10.4 | `patchMe` |
 | `GET /transactions` | List own transactions | query `ListTransactionsQuery` | `ListTransactionsResponse` | 200 | UNAUTHENTICATED, VALIDATION_FAILED, INTERNAL | session | §10.3 | `listTransactions` |

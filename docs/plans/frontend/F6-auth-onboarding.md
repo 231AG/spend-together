@@ -127,3 +127,26 @@ well-specified, self-contained forms.
 Owner reviews: the registration and login flows end to end; the identical forgot-password
 confirmation for a real and a fake identifier; the lockout message; currency setup with a
 non-US locale. Then F7 may start.
+
+## 12. As built (28 Sep 2026)
+
+- **Screens:** Welcome (`app/page.tsx`, split layout from `lg`), Onboarding
+  (`components/features/public/onboarding-pager.tsx` — dots, Skip, Next/Get started, arrow
+  keys and swipe, seen-once flag), Register, Log in, Forgot / Reset password, Verify
+  (with the resend screen, ADR-012), Currency setup (radio group, search, locale default,
+  time zone with Change). Splash outcomes come from `SessionGate` (F5) and are reachable
+  via the Reference, Not onboarded, Signed out and Offline scenarios.
+- **Shared pieces:** `PasswordInput` (show/hide, length hint), `ErrorSummary` (focused
+  on submit, links to fields) and `FormNotice`; `useBlurValidation` (after blur, then live
+  once shown); `lib/auth-input.ts` (identifier detection, E.164, contract-backed rules,
+  locale → currency, time zone); `lib/auth-copy.ts` (all copy, error classification).
+- **Routing:** `/verify` and `/reset-password` open to any session (D-54); the rest of
+  `(auth)` is guest-only.
+- **Contract:** ADR-012 `POST /auth/verify/resend` (D-52).
+- **Illustrations:** token-coloured SVGs (D-53); Canva art can replace them in one file.
+- **Tests:** `lib/auth-input.test.ts`, `lib/auth-copy.test.ts`,
+  `components/features/auth/auth-forms.test.tsx` (blur timing, summary focus,
+  autocomplete, identical copy, lockout, locale default, axe), `e2e/auth.spec.ts` (flows
+  7.1 and 7.2, splash failure, 320 px Welcome, onboarding keys and flag, offline — axe on
+  each screen and state, at 360 / 768 / 1280 px).
+- **Fixed on the way:** reconnecting no longer unmounts a guest form (D-58).

@@ -97,6 +97,15 @@ export const variants = {
     };
   },
 
+  /** Signed in but not onboarded: SCR-01 routes to currency setup (SCR-07). */
+  notOnboarded: (): Seed => {
+    const seed = variants.empty();
+    return {
+      ...seed,
+      users: seed.users.map((u) => (u.key === 'jordan' ? { ...u, onboardedAt: null } : u)),
+    };
+  },
+
   /** Signed out, for the auth screens. */
   signedOut: (): Seed => ({ ...referenceSeed(), session: null }),
 } satisfies Record<string, () => Seed>;

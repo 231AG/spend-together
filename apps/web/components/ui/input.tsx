@@ -6,13 +6,16 @@ import { Field, controlClass } from './field';
 
 export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id'> {
   label: string;
+  /** Stable control id (error summaries link to it). */
+  fieldId?: string;
   hint?: ReactNode;
   error?: ReactNode;
 }
 
-export function Input({ label, hint, error, className, required, ...rest }: InputProps) {
+export function Input({ label, hint, error, className, required, fieldId, ...rest }: InputProps) {
   return (
     <Field
+      id={fieldId}
       label={label}
       hint={hint}
       error={error}

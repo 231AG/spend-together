@@ -45,6 +45,7 @@ export const PRESETS: Record<string, Partial<ScenarioState>> = {
   'Goal about to complete': { variant: 'goalAboutToComplete' },
   Recalculating: { recalculating: true },
   'Signed out': { variant: 'signedOut' },
+  'Not onboarded': { variant: 'notOnboarded' },
 };
 
 let state: ScenarioState = { ...DEFAULT_SCENARIO };

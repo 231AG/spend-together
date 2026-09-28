@@ -1,11 +1,14 @@
-import { AuthPlaceholder } from '@/components/features/public/auth-placeholder';
+import { Suspense } from 'react';
+import { ResetPasswordForm } from '@/components/features/auth/password-reset';
 
-// Reset password `/reset-password` (token from the email link or SMS).
-export default function ResetPasswordPage() {
+// SCR-06 step 2 `/reset-password?token=` (FR-04).
+export default function Page() {
   return (
-    <AuthPlaceholder
-      title="Choose a new password"
-      what="A new password of at least 10 characters."
-    />
+    <>
+      <h1 className="type-h2">Choose a new password</h1>
+      <Suspense>
+        <ResetPasswordForm />
+      </Suspense>
+    </>
   );
 }

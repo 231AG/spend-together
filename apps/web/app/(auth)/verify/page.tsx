@@ -1,11 +1,14 @@
-import { AuthPlaceholder } from '@/components/features/public/auth-placeholder';
+import { Suspense } from 'react';
+import { VerifyForm } from '@/components/features/auth/verify-form';
 
-// Verify `/verify` (email link or phone code).
-export default function VerifyPage() {
+// Verification `/verify` (§7.1, ADR-012 resend).
+export default function Page() {
   return (
-    <AuthPlaceholder
-      title="Confirm it's you"
-      what="Enter the code we sent, or open the link in your email."
-    />
+    <>
+      <h1 className="type-h2">Confirm it's you</h1>
+      <Suspense>
+        <VerifyForm />
+      </Suspense>
+    </>
   );
 }

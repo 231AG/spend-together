@@ -280,3 +280,22 @@ and day counts are UTC-midnight arithmetic on calendar dates, which has no DST t
 DST-edge tests pass. If a future need goes beyond "which local date is this instant"
 (e.g. local wall-clock times for reminders), that code lives outside the domain or needs a
 new ADR.
+
+---
+
+## ADR-012 — `POST /auth/verify/resend` for expired verification links
+
+**Status:** **Accepted** 28 Sep 2026 (F6; decision log D-52)
+**Spec:** §7.1 ("Verification link expired → resend link screen"), SCR-04, FR-01, §25.1
+
+**Context.** Flow 7.1 requires a resend screen when a verification link or code has
+expired, but the frozen contract (ADR-010) has no way to ask for a new one. The UI can't
+offer Resend honestly without it.
+
+**Decision.** Add `POST /api/v1/auth/verify/resend`, public, body `{identifier}`,
+answering **202** with the same `AcknowledgedResponse` whether or not the identifier has
+an account (no enumeration, as for forgot-password). Rate limited like the other auth
+endpoints. Registered in `endpoints.ts` with source `ADR-012`.
+
+**Consequences.** One more endpoint for the mock (F4 handler added in F6) and for B4
+(`B4-05` now also covers resend). No existing schema changes shape.

@@ -5,7 +5,7 @@ import { NoContent } from '../src/primitives';
 const all = Object.values(endpoints) as Endpoint[];
 const routes = new Set(all.map((e) => `${e.method} ${e.path}`));
 
-// Transcribed from spec §10.3 and §10.4 (docs/spec/spec-digest.md), plus ADR-003.
+// Transcribed from spec §10.3 and §10.4 (docs/spec/spec-digest.md), plus ADR-003 and ADR-012.
 const SPEC_10_3 = [
   'POST /auth/register',
   'POST /auth/login',
@@ -53,15 +53,14 @@ const SPEC_10_4 = [
 ];
 
 describe('endpoint registry', () => {
-  it.each([...SPEC_10_3, ...SPEC_10_4, 'POST /transactions/:id/restore'])(
-    'includes %s',
-    (route) => {
-      expect(routes.has(route)).toBe(true);
-    },
-  );
+  const ADRS = ['POST /transactions/:id/restore', 'POST /auth/verify/resend'];
 
-  it('has nothing beyond the spec and ADR-003', () => {
-    expect(all).toHaveLength(SPEC_10_3.length + SPEC_10_4.length + 1);
+  it.each([...SPEC_10_3, ...SPEC_10_4, ...ADRS])('includes %s', (route) => {
+    expect(routes.has(route)).toBe(true);
+  });
+
+  it('has nothing beyond the spec, ADR-003 and ADR-012', () => {
+    expect(all).toHaveLength(SPEC_10_3.length + SPEC_10_4.length + ADRS.length);
     expect(routes.size).toBe(all.length);
   });
 

@@ -88,6 +88,11 @@ export const authHandlers = [
       'If an account exists for those details, we have sent instructions to reset the password.',
   })),
 
+  // ADR-012: identical answer whether or not the account exists.
+  route('resendVerification', () => ({
+    message: 'If an account exists for those details, we have sent a new code.',
+  })),
+
   route('resetPassword', ({ body }) => {
     if (body.token !== RESET_TOKEN) {
       throw new ApiFailure('UNAUTHENTICATED', 'This reset link has expired. Request a new one.');
