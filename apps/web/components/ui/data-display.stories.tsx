@@ -168,6 +168,29 @@ export const Transactions: Story = {
   ),
 };
 
+/** Split view (§21): the row whose details are open is marked with aria-current. */
+export const SelectedRow: Story = {
+  render: () => (
+    <ul className="max-w-(--dialog-max) rounded-lg border border-border-default bg-bg-card p-2">
+      <li>
+        <TransactionRow
+          baseCurrency="USD"
+          href="/activity/example"
+          current
+          row={{
+            kind: 'expense',
+            title: 'Bills',
+            note: 'Internet',
+            category: { icon: 'receipt', color: 'cat-bills' },
+            amount: usd(3500),
+            date: '2026-09-09',
+          }}
+        />
+      </li>
+    </ul>
+  ),
+};
+
 export const Goals: Story = {
   render: () => (
     <div className="grid max-w-(--content-max) gap-4 md:grid-cols-2">

@@ -1,9 +1,6 @@
 import { notFound } from 'next/navigation';
-import {
-  ADD_TITLES,
-  TransactionFormPlaceholder,
-  isAddType,
-} from '@/components/features/form-placeholders';
+import { ADD_TITLES, isAddType } from '@/components/features/form-placeholders';
+import { AddTransaction } from '@/components/features/transactions/add-transaction';
 import { CancelLink } from '@/components/features/route-views';
 import { PageHeader } from '@/components/layout/page-header';
 
@@ -15,7 +12,7 @@ export default async function AddPage({ params }: { params: Promise<{ type: stri
     <>
       <PageHeader title={ADD_TITLES[type]} back={{ href: '/home', label: 'Home' }} />
       <div className="flex max-w-(--dialog-max) flex-col gap-4">
-        <TransactionFormPlaceholder type={type} />
+        <AddTransaction type={type} />
         <CancelLink href="/home" />
       </div>
     </>

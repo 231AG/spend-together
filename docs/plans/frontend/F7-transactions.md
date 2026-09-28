@@ -142,3 +142,32 @@ Medium uncertainty.
 Owner reviews: adding an expense in LRD with a USD base and confirming preview equals
 saved value; filtering and searching Activity with the URL visible; deleting and undoing;
 and the transaction detail showing rate and date. Then F8 may start.
+
+## 12. As built (28 Sep 2026)
+
+- **Form:** `components/features/transactions/transaction-form.tsx` — one component for
+  income, expense and edit; amount focused, currency picker inside the amount field
+  (base and recent pinned), category picker with the last five used first, date with
+  Today/Yesterday, 280-character note. The ≈ base preview uses `GET /exchange-rates` for
+  the chosen date and the domain `convert` (D-59, WAC-14); ADR-005's message disables
+  Save before submit.
+- **Add:** `add-transaction.tsx` in the intercepted dialog (closes like Esc, focus back to
+  the global Add) or the full page (returns Home); toast "Income added" / "Expense added".
+- **Mutations:** `use-transaction-mutations.ts` — optimistic create/delete with snapshot
+  rollback, client id as idempotency key, invalidation of activity, transactions, home and
+  insights (D-62); standalone restore for Undo (D-65).
+- **Activity:** `components/features/activity/activity-view.tsx` in
+  `app/(app)/activity/layout.tsx` — URL-held type, category, date range and search;
+  date-grouped rows; 50 per page with Load more; loading, empty, filtered-empty, error
+  (banner when results exist) states; split view from 1024 px (D-61).
+- **Details / edit:** `transaction-details.tsx` (original, converted, rate and its date,
+  estimated note, Edit, Delete with confirmation and a 5-second Undo toast),
+  `edit-transaction.tsx`.
+- **Tokens:** `--z-popover` (D-60). **Components:** `AmountInput` gains controlled text and
+  `autoFocus`; `TransactionRow` gains `current`.
+- **Tests:** `lib/transactions.test.ts` (preview == saved across every currency pair, a
+  sweep of amounts and five dates; rate wording; mapping), `transactions.test.tsx` (Save
+  gating, currency switch, ADR-005, optimistic rollback, paging, URL filters),
+  `e2e/transactions.spec.ts` (flows 7.3 and 7.4, LRD today and back-dated, too-small,
+  Undo by keyboard, URL filters across reload, split view, empty/loading/error/failed-save
+  states; axe throughout) at 360 / 768 / 1280 px.

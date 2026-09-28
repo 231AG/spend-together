@@ -7,7 +7,7 @@ import { expect, type Page } from '@playwright/test';
 export async function useScenario(
   page: Page,
   variant: string,
-  extra: { offline?: boolean } = {},
+  extra: { offline?: boolean; failing?: 'all' | string[]; latencyMs?: number } = {},
 ): Promise<void> {
   await page.addInitScript(
     ([v, x]) => {

@@ -19,10 +19,10 @@ Status: ☐ not started · ◐ in progress · ☑ evidenced by a passing test.
 | FR-03 | Logout ends the session | F11, B4 | `auth.logout.test.ts`, `e2e/logout-clears-stores` | ☐ |
 | FR-04 | Forgot/reset via email link or SMS code | F6, B4 | `apps/web/e2e/auth.spec.ts` (§7.2), `auth-forms.test.tsx` (F6), `auth.reset.test.ts` | ◐ (UI ☑) |
 | FR-05 | First-run base currency + timezone | F6, B5 | `apps/web/e2e/auth.spec.ts` (§7.1), `auth-input.test.ts`, `auth-forms.test.tsx` (F6), `me.patch.test.ts` | ◐ (UI ☑) |
-| FR-06 | Add income | F7, B5 | `e2e/flows/7.3`, `transactions.create.test.ts` | ☐ |
-| FR-07 | Add expense; recent categories first | F7, B5 | `e2e/flows/7.3`, `categories.recent.test.ts` | ☐ |
-| FR-08 | Edit/delete own transaction; summaries recalculate | F7, B5 | `e2e/flows/7.4`, `transactions.patch.test.ts` | ☐ |
-| FR-09 | Activity grouped by date with filters and search | F7, B5 | `activity.filters.test.ts`, `e2e/activity` | ☐ |
+| FR-06 | Add income | F7, B5 | `apps/web/e2e/transactions.spec.ts` (§7.3), `transactions.create.test.ts` | ◐ (UI ☑) |
+| FR-07 | Add expense; recent categories first | F7, B5 | `apps/web/e2e/transactions.spec.ts` (§7.3), `components/features/transactions/transactions.test.tsx`, `lib/transactions.test.ts` (recent), `categories.recent.test.ts` | ◐ (UI ☑) |
+| FR-08 | Edit/delete own transaction; summaries recalculate | F7, B5 | `apps/web/e2e/transactions.spec.ts` (§7.4, Undo), `transactions.test.tsx` (optimistic rollback), `transactions.patch.test.ts` | ◐ (UI ☑) |
+| FR-09 | Activity grouped by date with filters and search | F7, B5 | `apps/web/e2e/transactions.spec.ts` (URL filters, states), `transactions.test.tsx` (paging), `activity.filters.test.ts` | ◐ (UI ☑) |
 | FR-10 | Home for today/week/month with six metrics | F8, B5 | `home.summary.test.ts`, `e2e/home-periods` | ☐ |
 | FR-11 | Insights daily/weekly/monthly with comparison | F8, B5 | `insights.test.ts`, `e2e/insights-periods` | ☐ |
 | FR-12 | Create individual goal | F9, B5 | `e2e/flows/7.5`, `goals.create.test.ts` | ☐ |
@@ -37,7 +37,7 @@ Status: ☐ not started · ◐ in progress · ☑ evidenced by a passing test.
 | FR-21 | End couple with consequences | F10, B3, B5 | `e2e/flows/7.9`, pgTAP `end_couple` | ☐ |
 | FR-22 | Profile and settings | F11, B5 | `profile.test.ts`, `me.test.ts` | ☐ |
 | FR-23 | Manage custom categories | F11, B5 | `categories.crud.test.ts` (archive-not-delete) | ☐ |
-| FR-24 | Enter any currency; show converted value first | F7, B6 | `conversion-preview.test.ts` (preview == stored) | ☐ |
+| FR-24 | Enter any currency; show converted value first | F7, B6 | `apps/web/lib/transactions.test.ts` (preview == stored, all pairs), `conversion-preview.test.ts` | ◐ (UI ☑) |
 | FR-25 | Offline queue with sync indicator | F12 | `e2e/offline.spec.ts`, `offline-queue.test.ts` | ☐ |
 | FR-26 | Email notifications with preferences | B7 | `notifications.test.ts` (send/suppress matrix) | ☐ |
 
@@ -47,8 +47,8 @@ Status: ☐ not started · ◐ in progress · ☑ evidenced by a passing test.
 |---|---|---|---|---|
 | WAC-01 | Register → currency → Home < 90 s; no disclosure | F6, B4, B8 | `apps/web/e2e/auth.spec.ts` §7.1 (timed, F6 against MSW) | ◐ (UI ☑) |
 | WAC-02 | Sessions survive reload/restart; logout clears all | F6, F11, B4, B8 | `e2e/session-persistence` | ☐ |
-| WAC-03 | Income CRUD updates all affected periods | F7, F8, B5 | `e2e/income-updates-totals` | ☐ |
-| WAC-04 | Same for expenses incl. category totals and % | F7, F8, B5 | `e2e/expense-updates-totals` | ☐ |
+| WAC-03 | Income CRUD updates all affected periods | F7, F8, B5 | `e2e/income-updates-totals`; F7 invalidates activity/home/insights on every change (`use-transaction-mutations.ts`) | ◐ (F7 lists ☑; totals with F8) |
+| WAC-04 | Same for expenses incl. category totals and % | F7, F8, B5 | `e2e/expense-updates-totals`; F7 invalidation as WAC-03 | ◐ (F7 lists ☑; totals with F8) |
 | WAC-05 | Home matches F-01…F-06 for all three periods | F2, F8, B3, B5 | `packages/domain/test/*.test.ts`, `e2e/home-periods` | ◐ (domain ☑) |
 | WAC-06 | Zero income → "N/A", no errors anywhere | F2, F8, B5 | `packages/domain/test/*.test.ts` **T-02**, `e2e/zero-income` | ◐ (domain ☑) |
 | WAC-07 | Individual goals with inline validation | F9, B5 | `e2e/flows/7.5`, `goals.validation.test.ts` | ☐ |
@@ -58,7 +58,7 @@ Status: ☐ not started · ◐ in progress · ☑ evidenced by a passing test.
 | WAC-11 | Completion immediate and reversible | F9, B3 | `goal-completion.test.ts`, pgTAP trigger (both directions) | ☐ |
 | WAC-12 | Couple contributions visible with names; nothing else | F10, B2, B8 | `couple-privacy.test.ts`, pgTAP four-role suite, `e2e/couple-two-user`, `apps/web/mocks/privacy.test.ts` (F4, mock) | ◐ (mock ☑) |
 | WAC-13 | Insights correct across timezone and month boundaries | F2, F8, B3 | `packages/domain/test/*.test.ts` **T-13, T-14**, pgTAP `spending_series` | ◐ (domain ☑) |
-| WAC-14 | Non-base entry stored with original; preview == saved | F7, B6 | `conversion-preview.test.ts`, `packages/domain/test/*.test.ts` **T-11** | ◐ (domain ☑) |
+| WAC-14 | Non-base entry stored with original; preview == saved | F7, B6 | `apps/web/lib/transactions.test.ts`, `apps/web/e2e/transactions.spec.ts` (LRD, back-dated), `packages/domain/test/*.test.ts` **T-11** | ◐ (domain ☑, UI ☑) |
 | WAC-15 | Base-currency change re-expresses, preserves originals | F11, B6 | `e2e/flows/7.10`, `recalc.test.ts` | ☐ |
 | WAC-16 | Core flows on 4 desktop browsers + mobile viewports | F13, B11 | Playwright project matrix | ☐ |
 | WAC-17 | Offline expense syncs once, no duplicate | F12, B8 | `e2e/offline.spec.ts` | ☐ |

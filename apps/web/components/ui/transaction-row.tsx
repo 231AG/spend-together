@@ -35,6 +35,8 @@ export interface TransactionRowProps {
   onPress?: () => void;
   href?: string;
   locale?: string;
+  /** The row whose details are open beside the list (split view, §21). */
+  current?: boolean;
 }
 
 const KIND = {
@@ -64,7 +66,14 @@ export function accessibleRowName(row: TransactionRowData, baseCurrency: string,
   return parts.join(', ');
 }
 
-export function TransactionRow({ row, baseCurrency, onPress, href, locale }: TransactionRowProps) {
+export function TransactionRow({
+  row,
+  baseCurrency,
+  onPress,
+  href,
+  locale,
+  current = false,
+}: TransactionRowProps) {
   const kind = KIND[row.kind];
   const TypeIcon = kind.Icon;
   const name = accessibleRowName(row, baseCurrency, locale);
@@ -101,10 +110,18 @@ export function TransactionRow({ row, baseCurrency, onPress, href, locale }: Tra
       </span>
     </>
   );
-  const classes = 'flex w-full items-start gap-3 rounded-md px-2 py-3 text-left hover:bg-bg-subtle';
+  const classes = cn(
+    'flex w-full items-start gap-3 rounded-md px-2 py-3 text-left hover:bg-bg-subtle',
+    current && 'bg-bg-selected',
+  );
   if (href) {
     return (
-      <Link href={href} aria-label={name} className={classes}>
+      <Link
+        href={href}
+        aria-label={name}
+        aria-current={current ? 'page' : undefined}
+        className={classes}
+      >
         {content}
       </Link>
     );

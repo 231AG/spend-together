@@ -231,7 +231,7 @@ export function Picker(props: PickerProps) {
           align="start"
           sideOffset={6}
           aria-label={label}
-          className="z-(--z-overlay) flex max-h-(--popover-max-h) w-(--popover-width) flex-col rounded-lg border border-border-default bg-bg-card p-2 shadow-elev-2"
+          className="z-(--z-popover) flex max-h-(--popover-max-h) w-(--popover-width) flex-col rounded-lg border border-border-default bg-bg-card p-2 shadow-elev-2"
         >
           {body}
         </Popover.Content>
