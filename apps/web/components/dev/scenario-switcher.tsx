@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { FlaskConical, RotateCcw } from 'lucide-react';
 import { Popover } from 'radix-ui';
 import { useId, useState } from 'react';
+import { announceMockConnectivity } from '@/lib/connectivity';
 import { mockClock } from '@/mocks/clock';
 import { saveScenario } from '@/mocks/persist';
 import { PRESETS, applyScenario, resetScenario, scenario } from '@/mocks/scenarios';
@@ -22,6 +23,8 @@ export function ScenarioSwitcher() {
 
   function refresh() {
     saveScenario();
+    // The shell's offline chip follows the "Offline" preset (F5-08).
+    announceMockConnectivity(scenario().offline);
     void queryClient.invalidateQueries();
   }
 

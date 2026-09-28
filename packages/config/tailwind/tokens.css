@@ -193,6 +193,10 @@
   --popover-max-h: 24rem;
   --popover-width: 20rem;
   --fab-size: 56px;
+  /* §12.2: the FAB sits 16 px above the tab bar (and its safe area). */
+  --fab-bottom: calc(var(--tabbar-total) + var(--space-4));
+  /* Room kept below mobile content so the tab bar and FAB never cover it. */
+  --mobile-content-bottom: calc(var(--tabbar-total) + var(--fab-size) + var(--space-8));
   --avatar: 40px;
   --avatar-lg: 64px;
   --icon-sm: 16px;
