@@ -1,0 +1,43 @@
+{
+  "period": { "type": "monthly", "start": "2026-09-01", "end": "2026-09-30", "days_elapsed": 17 },
+  "currency": "USD",
+  "totals": {
+    "income": 120000,
+    "expenses": 57000,
+    "saved": 30000,
+    "net": 63000,
+    "remaining": 33000,
+    "savings_rate_pct": 25.0,
+    "avg_daily_spending": 3353
+  },
+  "previous": { "income": 111111, "expenses": 59500, "saved": 25000, "savings_rate_pct": 22.5 },
+  "change_pct": { "income": 8.0, "expenses": -4.2, "saved": 20.0, "savings_rate_pts": 2.5 },
+  "categories": [
+    { "id": "c0000000-0000-4000-8000-000000000002", "name": "Bills", "amount": 15000, "pct": 26.3 },
+    { "id": "c0000000-0000-4000-8000-000000000001", "name": "Food", "amount": 14000, "pct": 24.6 },
+    { "id": "c0000000-0000-4000-8000-000000000009", "name": "Other", "amount": 10500, "pct": 18.4 },
+    {
+      "id": "c0000000-0000-4000-8000-000000000003",
+      "name": "Transport",
+      "amount": 9000,
+      "pct": 15.8
+    },
+    {
+      "id": "c0000000-0000-4000-8000-000000000004",
+      "name": "Shopping",
+      "amount": 8500,
+      "pct": 14.9
+    }
+  ],
+  "series": {
+    "bucket": "month",
+    "points": [
+      { "start": "2026-04-01", "income": 0, "expenses": 0 },
+      { "start": "2026-05-01", "income": 0, "expenses": 0 },
+      { "start": "2026-06-01", "income": 0, "expenses": 0 },
+      { "start": "2026-07-01", "income": 110000, "expenses": 64000 },
+      { "start": "2026-08-01", "income": 111111, "expenses": 59500 },
+      { "start": "2026-09-01", "income": 120000, "expenses": 57000 }
+    ]
+  }
+}

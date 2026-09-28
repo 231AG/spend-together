@@ -10,12 +10,16 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "contract:doc": "UPDATE_CONTRACT_DOC=1 vitest run test/contract-doc.test.ts"
   },
   "devDependencies": {
     "@spendtogether/config": "workspace:*",
     "@types/node": "22.20.4",
     "typescript": "6.0.3",
     "vitest": "5.0.2"
+  },
+  "dependencies": {
+    "zod": "4.6.5"
   }
 }

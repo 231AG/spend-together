@@ -56,8 +56,8 @@ throwaway and is replaced by real components in F3. Status: **Approved by owner,
 
 | Phase | Name | Depends on | Est. | Uncertainty | Status |
 |---|---|---|:-:|:-:|---|
-| F0 | Foundation | — | 3 d | Medium | **Complete, awaiting owner approval** |
-| F1 | Contract freeze (`packages/schemas`) | F0 | 4 d | Low | Not started |
+| F0 | Foundation | — | 3 d | Medium | Complete (approved 27 Sep 2026) |
+| F1 | Contract freeze (`packages/schemas`) | F0 | 4 d | Low | **Complete, awaiting owner approval** |
 | F2 | Domain package (`packages/domain`) | F0, F1 | 6 d | Medium | Not started |
 | F3 | Design system | F0, F2 | 9 d | **High** | Not started |
 | F4 | MSW mock backend | F1, F2 | 6 d | Medium | Not started |

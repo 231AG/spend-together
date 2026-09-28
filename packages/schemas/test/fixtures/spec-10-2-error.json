@@ -1,0 +1,8 @@
+{
+  "error": {
+    "code": "VALIDATION_FAILED",
+    "message": "Some fields need attention.",
+    "fields": { "amount": "Enter an amount greater than 0." },
+    "request_id": "req_01J9..."
+  }
+}

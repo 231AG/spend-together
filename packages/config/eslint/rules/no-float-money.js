@@ -1,9 +1,10 @@
 // Money is integer minor units (CLAUDE.md). This rule catches the three ways a float
 // sneaks in: parsing a money value as a float, multiplying/dividing it by a fractional
-// literal, and formatting it with toFixed (which rounds through a float).
+// literal, and formatting it with toFixed (which rounds through a float). The API's
+// display-only `formatted` string counts as money too: clients never parse it (§10.1).
 
 const MONEY_NAME =
-  /(^amount|amount$|^balance|balance$|_minor$|Minor$|^price|price$|^total|total$)/i;
+  /(^amount|amount$|^balance|balance$|_minor$|Minor$|^price|price$|^total|total$|^formatted$)/i;
 const PARSERS = new Set(['parseFloat', 'Number']);
 
 /** The trailing identifier of an expression: `a.b.amountMinor` -> "amountMinor". */

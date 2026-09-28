@@ -213,3 +213,47 @@ this ADR is revisited.
 boundary and clock rules all run. We give up TypeScript 7's faster `tsc` for now; at this
 codebase size the difference is seconds. Revisit when typescript-eslint supports 7.x:
 change the pin, drop the Dependabot ignore, run the full F0 exit checklist again.
+
+---
+
+## ADR-010 — Contract v1: the shape decisions made while freezing `packages/schemas`
+
+**Status:** Accepted with F1 (27 Sep 2026)
+
+**Context.** Spec §10 fixes the endpoints, conventions and three example payloads, but
+leaves some wire shapes open. F1 had to decide them to freeze the contract.
+
+**Decisions.**
+
+1. **Two money types.** `Money` has `amount_minor >= 0`: every recorded or target amount
+   is positive (BR-07), and derived amounts such as a goal's remaining can reach 0.
+   `SignedMoney` exists only for F-04 remaining and F-05 net, which may be negative.
+   Insights and the home summary follow §16.3: plain minor-unit integers under one
+   top-level `currency`.
+2. **Rates are decimal strings.** `DecimalString` carries `numeric(24,10)` rates exactly,
+   so no client ever holds a rate as a float.
+3. **"Today" is a parameter.** BR-09 (no future dates) and BR-10 (target date today or
+   later) depend on the user's time zone, so they are schema factories such as
+   `createTransactionRequestFor(today)`. The base schemas are shape-only, and the package
+   never reads the clock.
+4. **Strict objects everywhere.** Unknown fields fail. Couple, partner and public
+   invitation objects therefore cannot carry partner finances (BR-05 by type), and a goal
+   PATCH cannot carry `currency` (BR-15).
+5. **Goal status is four values** (`on_track`, `at_risk`, `behind`, `completed`). An
+   overdue goal is `behind`, with `required_pace.overdue = true` and null pace values
+   (F-15).
+6. **Contributions show original and goal-currency amounts only** (§10.3). The
+   contributor's base-currency figure is on the wire only in the contributor's own
+   Activity feed.
+7. **The activity feed is a union discriminated by `kind`** (`transaction` or
+   `contribution`), with a shared `date` sort key.
+8. **Auth payloads beyond §10.3** are proposals made here, to be confirmed in B4: register
+   takes exactly one of `email` or `phone`; login takes `identifier`; `AuthSession`
+   returns `tokens: null` to web clients (cookies) and tokens to native clients; verify
+   takes `{identifier, code, purpose}`.
+9. **One endpoint registry.** `endpoints.ts` is the single list read by the typed client,
+   MSW (F4), the route handlers (B5) and the generated `api-contract.md`.
+
+**Consequences.** The contract is frozen as of this ADR. Any later change to
+`packages/schemas/src` needs a new ADR (enforced by `contract-freeze.yml`) and an update
+to the affected backend phase.

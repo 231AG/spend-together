@@ -1,0 +1,35 @@
+name: Contract freeze
+
+# The API contract in packages/schemas/src was frozen in F1 (ADR-002). A pull request
+# that changes it must also record the decision as an ADR in
+# docs/plans/00-shared/architecture-decisions.md.
+
+on:
+  pull_request:
+    paths:
+      - packages/schemas/src/**
+
+permissions:
+  contents: read
+
+jobs:
+  adr-required:
+    name: Schema change has an ADR
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Require an ADR alongside any contract change
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          changed=$(git diff --name-only "$BASE" "$HEAD")
+          echo "$changed"
+          if echo "$changed" | grep -q '^packages/schemas/src/' \
+            && ! echo "$changed" | grep -qx 'docs/plans/00-shared/architecture-decisions.md'; then
+            echo "::error::packages/schemas/src changed without an ADR. Add one to docs/plans/00-shared/architecture-decisions.md and update the affected backend phase (CLAUDE.md)."
+            exit 1
+          fi
+          echo "Contract change is accompanied by an ADR."
