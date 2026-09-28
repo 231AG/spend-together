@@ -36,3 +36,5 @@ jobs:
       # F2 exit criterion 2: 100% line and branch coverage on packages/domain.
       - run: pnpm test:domain
       - run: pnpm build
+      # F3: the Storybook build is the design-system review artefact; it must always build.
+      - run: pnpm --filter @spendtogether/web build-storybook

@@ -62,8 +62,8 @@ Status: ☐ not started · ◐ in progress · ☑ evidenced by a passing test.
 | WAC-15 | Base-currency change re-expresses, preserves originals | F11, B6 | `e2e/flows/7.10`, `recalc.test.ts` | ☐ |
 | WAC-16 | Core flows on 4 desktop browsers + mobile viewports | F13, B11 | Playwright project matrix | ☐ |
 | WAC-17 | Offline expense syncs once, no duplicate | F12, B8 | `e2e/offline.spec.ts` | ☐ |
-| WAC-18 | Loading/empty/error states on every primary screen | F3–F11, F13 | `e2e/a11y.spec.ts` state sweep | ☐ |
-| WAC-19 | No serious/critical axe violations; manual SR pass | F3, F13 | `e2e/a11y.spec.ts`, `screen-reader-report.md` | ☐ |
+| WAC-18 | Loading/empty/error states on every primary screen | F3–F11, F13 | `e2e/a11y.spec.ts` state sweep, `components/ui/stories.a11y.test.tsx` (F3) | ◐ (components ☑) |
+| WAC-19 | No serious/critical axe violations; manual SR pass | F3, F13 | `e2e/a11y.spec.ts`, `screen-reader-report.md`, `components/ui/stories.a11y.test.tsx` (F3) | ◐ (components ☑) |
 | WAC-20 | LCP ≤ 2.5 s; JS ≤ 180 kB; API p95 ≤ 800 ms | F13 (client), B9 (API) | Lighthouse CI, `load/dashboard.k6.js` | ☐ |
 
 ## Domain test cases (T-01…T-16)

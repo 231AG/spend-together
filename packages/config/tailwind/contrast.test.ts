@@ -136,7 +136,7 @@ describe('token file', () => {
   it('collapses every duration but the fade under reduced motion', () => {
     const reduced = /prefers-reduced-motion: reduce\)\s*\{([\s\S]*?)\n\}/.exec(css)?.[1] ?? '';
     const durations = [...tokens.keys()].filter(
-      (k) => k.startsWith('dur-') && k !== 'dur-fade' && k !== 'dur-toast',
+      (k) => k.startsWith('dur-') && !['dur-fade', 'dur-toast'].includes(k),
     );
     for (const d of durations) expect(reduced).toContain(`--${d}: 0ms`);
   });

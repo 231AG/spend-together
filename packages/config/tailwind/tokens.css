@@ -164,6 +164,8 @@
   --dur-fade: 100ms; /* the only motion that survives reduced motion */
   --delay-skeleton: 150ms; /* skeletons appear only after this (§19.1) */
   --dur-toast: 5000ms;
+  --dur-shimmer: 1500ms;
+  --dur-spin: 800ms;
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
 
@@ -185,6 +187,11 @@
   --header: 56px;
   --touch-min: 44px;
   --dialog-max: 480px;
+  --dialog-width: calc(100% - 2rem);
+  --dialog-max-h: 85dvh;
+  --sheet-max-h: 92dvh;
+  --popover-max-h: 24rem;
+  --popover-width: 20rem;
   --fab-size: 56px;
   --avatar: 40px;
   --avatar-lg: 64px;
@@ -195,6 +202,8 @@
   --icon-tile: 40px;
   --icon-tile-lg: 48px;
   --progress-h: 8px;
+  --skeleton-line: 0.75rem;
+  --tint-strength: 16%; /* category tile tint: color-mix of --cat into the card */
 
   /* ── focus and opacity ─────────────────────────────────────────────────── */
   --focus-ring-width: 2px;
@@ -211,5 +220,7 @@
     --dur-base: 0ms;
     --dur-slow: 0ms;
     --dur-celebrate: 0ms;
+    --dur-shimmer: 0ms;
+    --dur-spin: 0ms;
   }
 }
