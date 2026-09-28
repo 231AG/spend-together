@@ -6,12 +6,20 @@ import { afterAll, describe, it } from 'vitest';
 import importBoundaries from './rules/import-boundaries.js';
 import noAmbientDate from './rules/no-ambient-date.js';
 import noFloatMoney from './rules/no-float-money.js';
+import noHardcoded from './rules/no-hardcoded-design-values.js';
 
 RuleTester.afterAll = afterAll;
 RuleTester.describe = describe;
 RuleTester.it = it;
 
 const tester = new RuleTester({ languageOptions: { ecmaVersion: 2024, sourceType: 'module' } });
+const jsx = new RuleTester({
+  languageOptions: {
+    ecmaVersion: 2024,
+    sourceType: 'module',
+    parserOptions: { ecmaFeatures: { jsx: true } },
+  },
+});
 const at = (rel) => path.join(process.cwd(), rel);
 
 tester.run('no-float-money', noFloatMoney, {
@@ -111,5 +119,35 @@ tester.run('import-boundaries', importBoundaries, {
       filename: at('packages/schemas/src/a.ts'),
       errors: [{ messageId: 'pure' }],
     },
+  ],
+});
+
+jsx.run('no-hardcoded-design-values', noHardcoded, {
+  valid: [
+    '<p className="type-body-sm text-fg-muted p-4 rounded-md shadow-elev-2" />',
+    '<div className="z-(--z-modal) w-(--touch-min) duration-(--dur-base)" />',
+    '<div className="grid grid-cols-[1fr_auto] h-[var(--header)]" />',
+    '<div className="bg-neutral-50 text-income md:type-h1" />',
+    '<div style={{ width: `${pct}%` }} />',
+    '<div style={{ color: "var(--money-income)", flex: 1 === x ? 0 : 0 }} />',
+    'const label = "Invoice #12 paid";',
+  ],
+  invalid: [
+    { code: '<p className="text-[#10B981]" />', errors: [{ messageId: 'colour' }] },
+    { code: 'const c = "rgb(17 24 39 / .48)";', errors: [{ messageId: 'colour' }] },
+    { code: '<p className="w-[12px]" />', errors: [{ messageId: 'arbitrary' }] },
+    { code: '<p className="z-[60]" />', errors: [{ messageId: 'arbitrary' }] },
+    { code: '<p className="duration-[200ms]" />', errors: [{ messageId: 'arbitrary' }] },
+    { code: '<p className="text-red-500" />', errors: [{ messageId: 'tailwindDefault' }] },
+    { code: '<p className="p-4 text-sm" />', errors: [{ messageId: 'tailwindDefault' }] },
+    { code: '<p className="shadow-md" />', errors: [{ messageId: 'tailwindDefault' }] },
+    {
+      code: '<p className="hover:bg-emerald-600/50" />',
+      errors: [{ messageId: 'tailwindDefault' }],
+    },
+    { code: '<p className="z-50" />', errors: [{ messageId: 'tailwindDefault' }] },
+    { code: '<p style={{ width: 12 }} />', errors: [{ messageId: 'style' }] },
+    { code: '<p style={{ gap: "8px" }} />', errors: [{ messageId: 'style' }] },
+    { code: 'const cls = `m-2 ${x} rounded-[3px]`;', errors: [{ messageId: 'arbitrary' }] },
   ],
 });

@@ -1,15 +1,266 @@
 @import 'tailwindcss';
+@import '@spendtogether/config/tailwind/tokens.css';
 
-/* Placeholder token mapping that proves Tailwind 4's @theme inline works as spec §18.1
-   assumes (F0-01). The full token set lands in F3. */
-:root {
-  --color-primary-700: #047857;
-  --color-neutral-50: #f9fafb;
-  --color-neutral-900: #111827;
+/*
+ * Tailwind mapping of the design tokens (spec §18.1). Tailwind's own palette, type scale,
+ * radii and shadows are reset first, so only token-backed utilities exist: `bg-red-500`
+ * simply does not compile. Z-index and durations have no theme namespace; use
+ * `z-(--z-modal)` and `duration-(--dur-base)`.
+ */
+@theme {
+  --color-*: initial;
+  --font-*: initial;
+  --text-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --ease-*: initial;
+  --animate-*: initial;
+  --breakpoint-*: initial;
+
+  /* §21 breakpoints (min-width). Media queries cannot read custom properties. */
+  --breakpoint-sm: 30rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+  --breakpoint-2xl: 96rem;
 }
 
-@theme inline {
+@theme inline reference {
+  /* colour: raw palette, category, and semantic aliases */
+  --color-white: var(--color-white);
+  --color-primary-50: var(--color-primary-50);
+  --color-primary-100: var(--color-primary-100);
+  --color-primary-500: var(--color-primary-500);
+  --color-primary-600: var(--color-primary-600);
   --color-primary-700: var(--color-primary-700);
+  --color-primary-800: var(--color-primary-800);
+  --color-primary-900: var(--color-primary-900);
+  --color-secondary-50: var(--color-secondary-50);
+  --color-secondary-100: var(--color-secondary-100);
+  --color-secondary-500: var(--color-secondary-500);
+  --color-secondary-600: var(--color-secondary-600);
+  --color-accent-50: var(--color-accent-50);
+  --color-accent-500: var(--color-accent-500);
+  --color-accent-700: var(--color-accent-700);
+  --color-success-500: var(--color-success-500);
+  --color-error-50: var(--color-error-50);
+  --color-error-500: var(--color-error-500);
+  --color-error-600: var(--color-error-600);
+  --color-error-700: var(--color-error-700);
   --color-neutral-50: var(--color-neutral-50);
+  --color-neutral-100: var(--color-neutral-100);
+  --color-neutral-200: var(--color-neutral-200);
+  --color-neutral-300: var(--color-neutral-300);
+  --color-neutral-400: var(--color-neutral-400);
+  --color-neutral-600: var(--color-neutral-600);
+  --color-neutral-700: var(--color-neutral-700);
   --color-neutral-900: var(--color-neutral-900);
+  --color-cat-food: var(--cat-food);
+  --color-cat-bills: var(--cat-bills);
+  --color-cat-transport: var(--cat-transport);
+  --color-cat-shopping: var(--cat-shopping);
+  --color-cat-health: var(--cat-health);
+  --color-cat-education: var(--cat-education);
+  --color-cat-entertainment: var(--cat-entertainment);
+  --color-cat-family: var(--cat-family);
+  --color-cat-other: var(--cat-other);
+  --color-fg-default: var(--fg-default);
+  --color-fg-body: var(--fg-body);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-disabled: var(--fg-disabled);
+  --color-fg-on-action: var(--fg-on-action);
+  --color-fg-on-hero-muted: var(--fg-on-hero-muted);
+  --color-fg-link: var(--fg-link);
+  --color-fg-error: var(--fg-error);
+  --color-fg-warning: var(--fg-warning);
+  --color-bg-app: var(--bg-app);
+  --color-bg-card: var(--bg-card);
+  --color-bg-subtle: var(--bg-subtle);
+  --color-bg-selected: var(--bg-selected);
+  --color-border-default: var(--border-default);
+  --color-border-input: var(--border-input);
+  --color-border-strong: var(--border-strong);
+  --color-action-primary-bg: var(--action-primary-bg);
+  --color-action-primary-bg-hover: var(--action-primary-bg-hover);
+  --color-action-primary-fg: var(--action-primary-fg);
+  --color-action-secondary-bg: var(--action-secondary-bg);
+  --color-action-secondary-fg: var(--action-secondary-fg);
+  --color-action-danger-bg: var(--action-danger-bg);
+  --color-action-danger-bg-hover: var(--action-danger-bg-hover);
+  --color-action-danger-fg: var(--action-danger-fg);
+  --color-money-income: var(--money-income);
+  --color-money-expense: var(--money-expense);
+  --color-money-saving: var(--money-saving);
+  --color-status-ontrack-fg: var(--status-ontrack-fg);
+  --color-status-ontrack-bg: var(--status-ontrack-bg);
+  --color-status-atrisk-fg: var(--status-atrisk-fg);
+  --color-status-atrisk-bg: var(--status-atrisk-bg);
+  --color-status-behind-fg: var(--status-behind-fg);
+  --color-status-behind-bg: var(--status-behind-bg);
+  --color-progress-fill: var(--progress-fill);
+  --color-progress-track: var(--progress-track);
+  --color-chart-income: var(--chart-income);
+  --color-chart-expense: var(--chart-expense);
+  --color-chart-saving: var(--chart-saving);
+  --color-chart-grid: var(--chart-grid);
+  --color-chart-axis: var(--chart-axis);
+  --color-hero-from: var(--hero-from);
+  --color-hero-to: var(--hero-to);
+  --color-skeleton: var(--skeleton);
+  --color-scrim: var(--scrim);
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  /* aliases named in §18.1 */
+  --color-income: var(--money-income);
+  --color-expense: var(--money-expense);
+  --color-saving: var(--money-saving);
+
+  /* type */
+  --font-heading: var(--font-heading);
+  --font-sans: var(--font-body);
+  --text-display: var(--text-display);
+  --text-display--line-height: var(--text-display--line-height);
+  --text-display-lg: var(--text-display-lg);
+  --text-display-lg--line-height: var(--text-display-lg--line-height);
+  --text-num-display: var(--text-num-display);
+  --text-num-display--line-height: var(--text-num-display--line-height);
+  --text-num-display-lg: var(--text-num-display-lg);
+  --text-num-display-lg--line-height: var(--text-num-display-lg--line-height);
+  --text-h1: var(--text-h1);
+  --text-h1--line-height: var(--text-h1--line-height);
+  --text-h2: var(--text-h2);
+  --text-h2--line-height: var(--text-h2--line-height);
+  --text-h3: var(--text-h3);
+  --text-h3--line-height: var(--text-h3--line-height);
+  --text-body-lg: var(--text-body-lg);
+  --text-body-lg--line-height: var(--text-body-lg--line-height);
+  --text-body-sm: var(--text-body-sm);
+  --text-body-sm--line-height: var(--text-body-sm--line-height);
+  --text-label: var(--text-label);
+  --text-label--line-height: var(--text-label--line-height);
+  --text-caption: var(--text-caption);
+  --text-caption--line-height: var(--text-caption--line-height);
+  --tracking-overline: var(--tracking-overline);
+  --tracking-tight: var(--tracking-tight);
+
+  /* spacing: Tailwind multiplies this 4-pt unit (p-4 = --space-4) */
+  --spacing: var(--space-unit);
+
+  /* shape, elevation, motion */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-full: var(--radius-full);
+  --radius-card: var(--radius-lg);
+  --shadow-elev-0: var(--elev-0);
+  --shadow-elev-1: var(--elev-1);
+  --shadow-elev-2: var(--elev-2);
+  --shadow-elev-3: var(--elev-3);
+  --ease-standard: var(--ease-standard);
+  --ease-exit: var(--ease-exit);
+}
+
+/* Font weights per §17.4 type token. */
+@utility type-display {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: var(--text-display);
+  line-height: var(--text-display--line-height);
+  letter-spacing: var(--tracking-tight);
+  @variant md {
+    font-size: var(--text-display-lg);
+    line-height: var(--text-display-lg--line-height);
+  }
+}
+@utility type-num-display {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: var(--text-num-display);
+  line-height: var(--text-num-display--line-height);
+  font-feature-settings: var(--font-features-numeric);
+  font-variant-numeric: tabular-nums;
+  @variant md {
+    font-size: var(--text-num-display-lg);
+    line-height: var(--text-num-display-lg--line-height);
+  }
+}
+@utility type-h1 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: var(--text-h1);
+  line-height: var(--text-h1--line-height);
+  letter-spacing: var(--tracking-tight);
+}
+@utility type-h2 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: var(--text-h2);
+  line-height: var(--text-h2--line-height);
+  letter-spacing: var(--tracking-tight);
+}
+@utility type-h3 {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: var(--text-h3);
+  line-height: var(--text-h3--line-height);
+}
+@utility type-body-lg {
+  font-weight: 400;
+  font-size: var(--text-body-lg);
+  line-height: var(--text-body-lg--line-height);
+}
+@utility type-body-sm {
+  font-weight: 400;
+  font-size: var(--text-body-sm);
+  line-height: var(--text-body-sm--line-height);
+}
+@utility type-label {
+  font-weight: 600;
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+}
+@utility type-caption {
+  font-weight: 500;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+}
+@utility type-overline {
+  font-weight: 600;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  letter-spacing: var(--tracking-overline);
+  text-transform: uppercase;
+}
+/* Tabular, slashed-zero-free digits for every amount (§17.4). */
+@utility num {
+  font-feature-settings: var(--font-features-numeric);
+  font-variant-numeric: tabular-nums;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--bg-app);
+    color: var(--fg-body);
+    font-family: var(--font-body);
+    font-size: var(--text-body-lg);
+    line-height: var(--text-body-lg--line-height);
+    font-feature-settings: var(--font-features-body);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    color: var(--fg-default);
+  }
+  /* §18: the focus ring is never removed. */
+  :focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
 }

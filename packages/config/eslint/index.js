@@ -6,12 +6,14 @@ import tseslint from 'typescript-eslint';
 import importBoundaries from './rules/import-boundaries.js';
 import noAmbientDate from './rules/no-ambient-date.js';
 import noFloatMoney from './rules/no-float-money.js';
+import noHardcodedDesignValues from './rules/no-hardcoded-design-values.js';
 
 export const spendtogether = {
   rules: {
     'import-boundaries': importBoundaries,
     'no-ambient-date': noAmbientDate,
     'no-float-money': noFloatMoney,
+    'no-hardcoded-design-values': noHardcodedDesignValues,
   },
 };
 
@@ -51,6 +53,11 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
     },
     settings: { next: { rootDir: 'apps/web/' } },
+  },
+  {
+    // Tokens only in UI code (spec §18). Library code (lib/) formats values, not visuals.
+    files: ['apps/web/{app,components}/**/*.{ts,tsx}', 'apps/web/**/*.stories.tsx'],
+    rules: { 'spendtogether/no-hardcoded-design-values': 'error' },
   },
   {
     // Plain JS tooling files (this config, rule modules) are not part of any tsconfig.

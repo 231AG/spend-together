@@ -1,0 +1,215 @@
+/*
+ * SpendTogether design tokens: the only source of visual values (spec §17, §18).
+ * Names follow the spec; components reference the semantic aliases, never the raw
+ * palette, and never a literal value. A missing token is added here, not inlined.
+ * contrast.test.ts checks every text/background pair against §17.1.
+ */
+
+:root {
+  /* ── colour: brand and semantic palette (§17.1, §18.1) ─────────────────── */
+  --color-white: #ffffff;
+  --color-primary-50: #ecfdf5;
+  --color-primary-100: #d1fae5;
+  --color-primary-500: #10b981;
+  --color-primary-600: #059669;
+  --color-primary-700: #047857;
+  --color-primary-800: #065f46;
+  --color-primary-900: #064e3b;
+  --color-secondary-50: #eef2ff;
+  --color-secondary-100: #e0e7ff;
+  --color-secondary-500: #6366f1;
+  --color-secondary-600: #4f46e5;
+  --color-accent-50: #fffbeb;
+  --color-accent-500: #f59e0b;
+  --color-accent-700: #b45309;
+  --color-success-500: #22c55e;
+  --color-error-50: #fef2f2;
+  --color-error-500: #ef4444;
+  --color-error-600: #dc2626;
+  --color-error-700: #b91c1c;
+  --color-neutral-50: #f9fafb;
+  --color-neutral-100: #f3f4f6;
+  --color-neutral-200: #e5e7eb;
+  --color-neutral-300: #d1d5db;
+  --color-neutral-400: #9ca3af;
+  --color-neutral-600: #6b7280;
+  --color-neutral-700: #374151;
+  --color-neutral-900: #111827;
+
+  /* ── colour: chart categories (§17.3) ──────────────────────────────────── */
+  --cat-food: #f59e0b;
+  --cat-bills: #6366f1;
+  --cat-transport: #3b82f6;
+  --cat-shopping: #06b6d4;
+  --cat-health: #ec4899;
+  --cat-education: #8b5cf6;
+  --cat-entertainment: #f97316;
+  --cat-family: #14b8a6;
+  --cat-other: #94a3b8;
+
+  /* ── colour: semantic aliases (components use these) ───────────────────── */
+  --fg-default: var(--color-neutral-900);
+  --fg-body: var(--color-neutral-700);
+  --fg-muted: var(--color-neutral-600); /* not on --bg-subtle: 4.39:1 (D-16) */
+  --fg-disabled: var(--color-neutral-400);
+  --fg-on-action: var(--color-white);
+  --fg-on-hero-muted: var(--color-primary-50);
+  --fg-link: var(--color-primary-700);
+  --fg-error: var(--color-error-700);
+  --fg-warning: var(--color-accent-700);
+  --bg-app: var(--color-neutral-50);
+  --bg-card: var(--color-white);
+  --bg-subtle: var(--color-neutral-100);
+  --bg-selected: var(--color-primary-50);
+  --border-default: var(--color-neutral-200);
+  --border-input: var(--color-neutral-300);
+  --border-strong: var(--color-neutral-600);
+  --action-primary-bg: var(--color-primary-700);
+  --action-primary-bg-hover: var(--color-primary-800);
+  --action-primary-fg: var(--color-white);
+  --action-secondary-bg: var(--color-primary-50);
+  --action-secondary-fg: var(--color-primary-800);
+  --action-danger-bg: var(--color-error-600);
+  --action-danger-bg-hover: var(--color-error-700);
+  --action-danger-fg: var(--color-white);
+  --money-income: var(--color-primary-700);
+  --money-expense: var(--color-error-700);
+  --money-saving: var(--color-secondary-600);
+  --status-ontrack-fg: var(--color-primary-800);
+  --status-ontrack-bg: var(--color-primary-50);
+  --status-atrisk-fg: var(--color-accent-700);
+  --status-atrisk-bg: var(--color-accent-50);
+  --status-behind-fg: var(--color-error-700);
+  --status-behind-bg: var(--color-error-50);
+  --progress-fill: var(--color-primary-600);
+  --progress-track: var(--color-neutral-200);
+  --chart-income: var(--color-primary-600);
+  --chart-expense: var(--color-error-500);
+  --chart-saving: var(--color-secondary-500);
+  --chart-grid: var(--color-neutral-200);
+  --chart-axis: var(--color-neutral-600);
+  --hero-from: var(--color-primary-700);
+  --hero-to: var(--color-primary-900);
+  --skeleton: var(--color-neutral-100);
+  --scrim: rgb(17 24 39 / 0.48);
+
+  /* ── type (§17.4); sizes in rem so text scales with user settings ──────── */
+  /* The *-face variables are set by next/font (apps/web/app/fonts.ts). */
+  --font-heading:
+    var(--font-heading-face, 'Plus Jakarta Sans'), system-ui, -apple-system, 'Segoe UI', Roboto,
+    sans-serif;
+  --font-body:
+    var(--font-body-face, 'Inter'), system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-features-body: 'cv11' 1;
+  --font-features-numeric: 'tnum' 1, 'cv11' 1;
+  --text-display: 2rem; /* 32/40 mobile; 40/48 from md */
+  --text-display--line-height: 2.5rem;
+  --text-display-lg: 2.5rem;
+  --text-display-lg--line-height: 3rem;
+  --text-num-display: 2rem; /* 32/36 mobile; 40/44 from md */
+  --text-num-display--line-height: 2.25rem;
+  --text-num-display-lg: 2.5rem;
+  --text-num-display-lg--line-height: 2.75rem;
+  --text-h1: 1.875rem;
+  --text-h1--line-height: 2.375rem;
+  --text-h2: 1.375rem;
+  --text-h2--line-height: 1.875rem;
+  --text-h3: 1.125rem;
+  --text-h3--line-height: 1.625rem;
+  --text-body-lg: 1rem;
+  --text-body-lg--line-height: 1.5rem;
+  --text-body-sm: 0.875rem;
+  --text-body-sm--line-height: 1.25rem;
+  --text-label: 0.875rem;
+  --text-label--line-height: 1.25rem;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+  --tracking-overline: 0.06em;
+  --tracking-tight: -0.02em;
+  --measure-prose: 72ch;
+
+  /* ── spacing, 4-pt (§18) ───────────────────────────────────────────────── */
+  --space-unit: 0.25rem;
+  --space-0: 0;
+  --space-0-5: 0.125rem;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* ── shape and elevation ───────────────────────────────────────────────── */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+  --elev-0: none;
+  --elev-1: 0 1px 2px rgb(17 24 39 / 0.06);
+  --elev-2: 0 4px 12px rgb(17 24 39 / 0.08);
+  --elev-3: 0 12px 32px rgb(17 24 39 / 0.16);
+  --border-width: 1px;
+  --border-width-strong: 2px;
+
+  /* ── motion ────────────────────────────────────────────────────────────── */
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+  --dur-celebrate: 1200ms;
+  --dur-fade: 100ms; /* the only motion that survives reduced motion */
+  --delay-skeleton: 150ms; /* skeletons appear only after this (§19.1) */
+  --dur-toast: 5000ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /* ── z-index ───────────────────────────────────────────────────────────── */
+  --z-base: 0;
+  --z-sticky: 10;
+  --z-nav: 20;
+  --z-fab: 30;
+  --z-overlay: 40;
+  --z-modal: 50;
+  --z-toast: 60;
+
+  /* ── layout (§18, §21); breakpoints live in @theme, CSS vars can't drive @media ── */
+  --content-max: 1200px;
+  --sidebar: 240px;
+  --rail: 72px;
+  --tabbar: 64px;
+  --tabbar-total: calc(var(--tabbar) + env(safe-area-inset-bottom));
+  --header: 56px;
+  --touch-min: 44px;
+  --dialog-max: 480px;
+  --fab-size: 56px;
+  --avatar: 40px;
+  --avatar-lg: 64px;
+  --icon-sm: 16px;
+  --icon-md: 20px;
+  --icon-lg: 24px;
+  --icon-stroke: 1.75;
+  --icon-tile: 40px;
+  --icon-tile-lg: 48px;
+  --progress-h: 8px;
+
+  /* ── focus and opacity ─────────────────────────────────────────────────── */
+  --focus-ring-width: 2px;
+  --focus-ring-color: var(--color-primary-700);
+  --focus-ring: var(--focus-ring-width) solid var(--focus-ring-color);
+  --focus-ring-offset: 2px;
+  --opacity-disabled: 0.45;
+}
+
+/* §18: under reduced motion every duration is 0 except opacity fades ≤ 100 ms. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur-base: 0ms;
+    --dur-slow: 0ms;
+    --dur-celebrate: 0ms;
+  }
+}
