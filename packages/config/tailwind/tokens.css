@@ -88,6 +88,9 @@
   --chart-saving: var(--color-secondary-500);
   --chart-grid: var(--color-neutral-200);
   --chart-axis: var(--color-neutral-600);
+  /* Recharts takes numbers: these are read at runtime (F8, D-70). */
+  --chart-bar-radius: 4px;
+  --chart-tick-size: 0.75rem;
   --hero-from: var(--color-primary-700);
   --hero-to: var(--color-primary-900);
   --skeleton: var(--color-neutral-100);
@@ -166,6 +169,8 @@
   --dur-toast: 5000ms;
   --dur-shimmer: 1500ms;
   --dur-spin: 800ms;
+  /* §16.2: chart entry animation is at most 300 ms. */
+  --dur-chart: 300ms;
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
 
@@ -228,5 +233,6 @@
     --dur-celebrate: 0ms;
     --dur-shimmer: 0ms;
     --dur-spin: 0ms;
+    --dur-chart: 0ms;
   }
 }

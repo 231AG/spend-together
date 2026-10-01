@@ -79,3 +79,25 @@ export function formatApprox(base: MoneyDisplay): string {
 export function totalsLabel(periodLabel: string, baseCurrency: string): string {
   return `${periodLabel} · ${baseCurrency}`;
 }
+
+/**
+ * Axis ticks: "$600" for whole amounts, "$0.75" otherwise — never rounded, so small
+ * scales can't show duplicate or misleading ticks. Display only.
+ */
+export function formatAxisMoney(money: MoneyDisplay): string {
+  const locale = money.locale ?? DEFAULT_LOCALE;
+  const exponent = money.exponent ?? digitsFor(money.currency, locale);
+  const major = toMajorString(Math.abs(money.amountMinor), exponent);
+  const whole = Math.abs(money.amountMinor) % 10 ** exponent === 0;
+  const text = new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: money.currency,
+    currencyDisplay: 'narrowSymbol',
+    minimumFractionDigits: whole ? 0 : exponent,
+    maximumFractionDigits: whole ? 0 : exponent,
+  })
+    .formatToParts(major as Intl.StringNumericLiteral)
+    .map((p) => (p.type === 'currency' && money.symbol ? money.symbol : p.value))
+    .join('');
+  return money.amountMinor < 0 ? `${MINUS}${text}` : text;
+}

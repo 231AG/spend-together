@@ -1,4 +1,5 @@
 import { Suspense, type ReactNode } from 'react';
+import { SessionAnalytics } from '@/components/features/session-analytics';
 import { AppShell } from '@/components/layout/app-shell';
 import { SessionGate, Splash } from '@/components/layout/session-gate';
 
@@ -9,6 +10,7 @@ export default function AppLayout({ children, modal }: { children: ReactNode; mo
   return (
     <Suspense fallback={<Splash />}>
       <SessionGate mode="app">
+        <SessionAnalytics />
         <AppShell modal={modal}>{children}</AppShell>
       </SessionGate>
     </Suspense>

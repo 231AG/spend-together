@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
+  bucketAverage,
+  foldCategoryShares,
   Decimal,
   categoryTotals,
   contributorShares,
@@ -64,6 +66,32 @@ describe('summary edges', () => {
   it('display rounding of percentages is half away from zero', () => {
     expect(roundPct1(26.35)).toBe(26.4);
     expect(roundPct1(-4.25)).toBe(-4.3);
+  });
+});
+
+describe('chart aggregates (C-01, C-02)', () => {
+  it('bucketAverage rounds the mean once, half away from zero, from the first spending', () => {
+    expect(bucketAverage([])).toBe(0);
+    expect(bucketAverage([0, 0, 0])).toBe(0);
+    expect(bucketAverage([64000, 59500, 57000])).toBe(60167);
+    expect(bucketAverage([1, 2])).toBe(2);
+    // Leading empty months are before any records; later zeros count.
+    expect(bucketAverage([0, 0, 0, 64000, 59500, 57000])).toBe(60167);
+    expect(bucketAverage([0, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1000])).toBe(154);
+  });
+
+  it('foldCategoryShares keeps the first n and folds the rest so parts total the whole', () => {
+    const shares = [40, 20, 10, 10, 8, 5, 4, 3].map((pct, i) => ({
+      id: String(i),
+      amount: pct * 100,
+      pct,
+    }));
+    const six = foldCategoryShares(shares, 6);
+    expect(six.kept.map((s) => s.id)).toEqual(['0', '1', '2', '3', '4', '5']);
+    expect(six.rest).toEqual({ amount: 700, pct: 7, count: 2 });
+    // Seven or fewer slices fit as they are: no bucket of one.
+    expect(foldCategoryShares(shares.slice(0, 7), 6).rest).toBeNull();
+    expect(foldCategoryShares([], 6)).toEqual({ kept: [], rest: null });
   });
 });
 

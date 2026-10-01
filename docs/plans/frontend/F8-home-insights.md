@@ -158,3 +158,32 @@ underestimated.
 Owner reviews: Home at all three periods against W-01/W-02; the zero-income N/A state;
 Insights against W-05; every chart toggled to its table; and a keyboard pass through a
 chart's data points. Then F9 may start.
+
+## 12. As built (1 Oct 2026)
+
+- **Home** (`components/features/home/`): `SummaryHeroCard` (Remaining / Overspent, net
+  line, four metric links to Insights, code once in the header), `SpendingPreview` (top
+  five with share and token-coloured bar, each linking to Activity filtered by category
+  and period), compact goal cards (overdue from the domain), recent activity from 1024 px,
+  first-run empty state. Greeting with date and base currency.
+- **Insights** (`components/features/insights/`): period control and date stepper in the
+  URL, five metric cards with C-06 deltas (points for savings rate) and F-07, and
+  dynamically imported charts.
+- **Charts** (`components/features/charts/`, Recharts 3.10.1): C-02 spending trend
+  (average per bucket, D-68), C-03 income vs expenses (3/6 buckets, labels from 768 px),
+  C-01 donut (top six + "Other categories", D-69); each in `ChartContainer` with a real
+  table; minimum-data message; motion and sizes from tokens (D-70).
+- **Domain:** `bucketAverage`, `foldCategoryShares` (100% coverage kept).
+- **Analytics:** `lib/analytics.ts` with allow-listed properties and a pluggable sink
+  (D-71, Q13); `insights_viewed` and per-account daily `session_start`.
+- **Self-audit** (code review at high effort, before merge): ten findings checked; seven
+  fixed (period-switch labels, Next before /me, per-account session flag, trend average
+  moved to domain, overdue via domain, chart tokens, axis tick rounding, folded-slice
+  colour), C-02 kept as the owner decided, docs added (D-68…D-74, Q13, Q14).
+- **Tests:** `lib/insights.test.ts`, `lib/analytics.test.ts`, axis formatter tests,
+  `components/features/charts/charts.test.tsx` (mapping, tables, minimum data, motion
+  tokens, hero), domain tests for both new functions, `e2e/home-insights.spec.ts` (W-01
+  figures, category → filtered Activity, periods in the URL, zero income with no console
+  errors, first run, W-05 deltas and stepping, tables and axe in both modes, C-03 values,
+  keyboard through chart points, minimum data, and add/delete moving Home totals for
+  WAC-03/04) at 360 / 768 / 1280 px.

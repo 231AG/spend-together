@@ -1,6 +1,8 @@
 import { Suspense } from 'react';
+import { HomeGreeting } from '@/components/features/home/home-greeting';
+import { HomeView } from '@/components/features/home/home-view';
 import { HomePeriodControl } from '@/components/features/route-views';
-import { ComingInPhase, PageHeader } from '@/components/layout/page-header';
+import { PageHeader } from '@/components/layout/page-header';
 
 // SCR-08 Home `/home?period=today|week|month` (default month).
 export default function HomePage() {
@@ -8,16 +10,16 @@ export default function HomePage() {
     <>
       <PageHeader
         title="Home"
+        subtitle={<HomeGreeting />}
         actions={
           <Suspense>
             <HomePeriodControl />
           </Suspense>
         }
       />
-      <ComingInPhase
-        phase="F8"
-        what="Your remaining cash flow, income, expenses, savings and savings rate for the period, where your money went, active goals and recent activity."
-      />
+      <Suspense>
+        <HomeView />
+      </Suspense>
     </>
   );
 }

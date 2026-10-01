@@ -132,3 +132,44 @@ export function savingsRateChangePts(
 export function roundPct1(pct: number): number {
   return new Decimal(pct).toDecimalPlaces(1, Decimal.ROUND_HALF_UP).toNumber();
 }
+
+/**
+ * C-02's dashed reference line (D-68): the mean spending per plotted bucket, rounded once,
+ * half away from zero. It counts from the first bucket holding any spending — buckets
+ * before someone started recording would only drag it down; empty buckets after that are
+ * real zeros. Zero when nothing was spent.
+ */
+export function bucketAverage(amounts: readonly number[]): MoneyMinor {
+  const first = amounts.findIndex((a) => a > 0);
+  if (first === -1) return minor(0);
+  const counted = amounts.slice(first);
+  return roundHalfAwayFromZero(new Decimal(sumMinor(counted)).dividedBy(counted.length));
+}
+
+export interface FoldedShare<T> {
+  /** The kept categories, in their given (amount-descending) order. */
+  kept: T[];
+  /** Everything past `keep`, summed; null when nothing was folded. */
+  rest: { amount: MoneyMinor; pct: number; count: number } | null;
+}
+
+/**
+ * C-01: keep the first `keep` category shares and fold the rest into one bucket so a donut
+ * never exceeds `keep + 1` slices (§16.2). The bucket's percentage is the sum of the folded
+ * full-precision percentages, so the parts still total the whole.
+ */
+export function foldCategoryShares<T extends { amount: number; pct: number }>(
+  shares: readonly T[],
+  keep: number,
+): FoldedShare<T> {
+  if (shares.length <= keep + 1) return { kept: [...shares], rest: null };
+  const folded = shares.slice(keep);
+  return {
+    kept: shares.slice(0, keep),
+    rest: {
+      amount: sumMinor(folded.map((s) => s.amount)),
+      pct: folded.reduce((acc, s) => acc.plus(s.pct), new Decimal(0)).toNumber(),
+      count: folded.length,
+    },
+  };
+}

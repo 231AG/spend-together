@@ -1,3 +1,4 @@
+import { roundPct1 } from '@spendtogether/domain';
 import { CalendarDays } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/cn';
@@ -31,7 +32,8 @@ export interface GoalCardProps {
 export function GoalCard({ goal, href, compact = false, locale }: GoalCardProps) {
   const saved = formatMoney(goal.saved);
   const target = formatMoney(goal.target);
-  const pct = `${Math.round(goal.progressPct * 10) / 10}%`;
+  // Display rounding from the domain (§6.1): one decimal, ties away from zero.
+  const pct = `${String(roundPct1(goal.progressPct))}%`;
   return (
     <Link
       href={href}

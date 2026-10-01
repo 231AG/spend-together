@@ -216,6 +216,31 @@ lead time, not code. Flagging early so they are not discovered on the day B4 sta
 
 ---
 
+## Q13 — Which product-analytics tool receives §16.4's events?
+
+**Status:** Open · **Needed before:** B9 (observability) or launch
+
+§16.4 asks for "a privacy-respecting analytics tool" but names none. F8 ships the events
+(`insights_viewed`, daily `session_start`) through `apps/web/lib/analytics.ts`, which
+strips any property not on the event's allow-list; the default sink records nothing. A
+provider plugs in with `setAnalyticsSink` once chosen (D-71).
+
+---
+
+## Q14 — The §17.3 category palette fails colour-blind separation across all pairs
+
+**Status:** Open (owner to review) · **Needed before:** F13 hardening
+
+Run through the dataviz validator, the nine `cat-*` colours pass for the reference
+month's five slices, but across all pairs `cat-bills` (#6366f1) and `cat-education`
+(#8b5cf6) are nearly indistinguishable (ΔE 0.8 protan, 6.3 normal vision); `cat-other` is
+deliberately grey; amber, cyan, orange, teal and grey are below 3:1 against white. Every
+chart already pairs colour with a text label and offers a table (§16.2), so no meaning is
+lost, but re-stepping `cat-education` (and perhaps one of the blues) would make the donut
+readable by colour too. Changing spec colours is the owner's call.
+
+---
+
 ## Closed
 
 | # | Item | Resolution |
@@ -224,3 +249,4 @@ lead time, not code. Flagging early so they are not discovered on the day B4 sta
 | C-2 | Correction #2 cites "F-11" for category percentage | Typo; §6.2 defines it as **F-09** (F-11 is Goal Balance). Same treatment. |
 | C-3 | PDF export of the plans | Owner decided Markdown only, 18 Sep 2026 (ADR-008). |
 | C-4 | Component workbench choice | Storybook (ADR-007). |
+| C-5 | §16.1 vs the C-02 specimen: monthly trend as 6 monthly buckets, or daily points with "avg $33.53/day"? | Owner chose §16.1 (1 Oct 2026): buckets as the API returns them, dashed line = average per plotted bucket (D-68). F-07 is shown as its own metric. |
