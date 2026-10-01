@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { ESTIMATED_RATE_NOTE, MINUS, formatApprox, formatMoney, totalsLabel } from './format-money';
+import {
+  ESTIMATED_RATE_NOTE,
+  MINUS,
+  formatApprox,
+  formatAxisMoney,
+  formatMoney,
+  totalsLabel,
+} from './format-money';
 
 // F3-05: spec §11.4 display rules for base, non-base, exponent-0 and exponent-3 amounts.
 
@@ -53,5 +60,22 @@ describe('formatMoney', () => {
   it('labels totals with the base code once', () => {
     expect(totalsLabel('This month', 'USD')).toBe('This month · USD');
     expect(ESTIMATED_RATE_NOTE).toMatch(/closest available rate/);
+  });
+});
+
+describe('formatAxisMoney (F8 axis ticks)', () => {
+  const usd = (amountMinor: number) => ({ amountMinor, currency: 'USD', exponent: 2, symbol: '$' });
+
+  it('drops cents only for whole amounts, so small scales never repeat a tick', () => {
+    expect(formatAxisMoney(usd(60000))).toBe('$600');
+    expect(formatAxisMoney(usd(75))).toBe('$0.75');
+    expect([0, 75, 150, 225, 300].map((v) => formatAxisMoney(usd(v)))).toEqual([
+      '$0',
+      '$0.75',
+      '$1.50',
+      '$2.25',
+      '$3',
+    ]);
+    expect(formatAxisMoney({ amountMinor: 1500, currency: 'JPY', exponent: 0 })).toBe('¥1,500');
   });
 });

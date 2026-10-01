@@ -21,6 +21,9 @@ export const queryKeys = {
   transactions: ['transactions'] as const,
   transaction: (id: string) => ['transactions', 'detail', id] as const,
   recentTransactions: (type: 'income' | 'expense') => ['transactions', 'recent', type] as const,
+  home: (period: 'today' | 'week' | 'month') => ['home', period] as const,
+  insights: (period: 'daily' | 'weekly' | 'monthly', date: string | null) =>
+    ['insights', period, date ?? 'today'] as const,
 };
 
 /**
@@ -100,4 +103,27 @@ export function useToday(): string | null {
   const me = useMe();
   if (!me.data) return null;
   return localDate(appClock.now(), me.data.timezone);
+}
+
+/** SCR-08 in one round trip (§10.4). */
+export function useHomeSummary(period: 'today' | 'week' | 'month') {
+  return useQuery({
+    queryKey: queryKeys.home(period),
+    queryFn: () => apiClient.call(endpoints.getHomeSummary, { query: { period } }),
+  });
+}
+
+const INSIGHTS = {
+  daily: endpoints.insightsDaily,
+  weekly: endpoints.insightsWeekly,
+  monthly: endpoints.insightsMonthly,
+} as const;
+
+/** SCR-14 for the period containing `date` (today when null). Keeps the last view while loading the next. */
+export function useInsights(period: 'daily' | 'weekly' | 'monthly', date: string | null) {
+  return useQuery({
+    queryKey: queryKeys.insights(period, date),
+    queryFn: () => apiClient.call(INSIGHTS[period], { query: date ? { date } : {} }),
+    placeholderData: (previous) => previous,
+  });
 }

@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import {
   PeriodSelector,
   SegmentedControl,
@@ -20,31 +19,6 @@ export function HomePeriodControl() {
     'month',
   );
   return <PeriodSelector value={period} onValueChange={setPeriod} />;
-}
-
-export function InsightsPeriodControl() {
-  const [period, setPeriod] = useUrlParam<'daily' | 'weekly' | 'monthly'>(
-    'period',
-    ['daily', 'weekly', 'monthly'],
-    'monthly',
-  );
-  const params = useSearchParams();
-  const date = params.get('date');
-  return (
-    <div className="flex flex-col gap-2">
-      <SegmentedControl
-        label="Insights period"
-        value={period}
-        onValueChange={setPeriod}
-        options={[
-          { value: 'daily', label: 'Daily' },
-          { value: 'weekly', label: 'Weekly' },
-          { value: 'monthly', label: 'Monthly' },
-        ]}
-      />
-      {date && <p className="type-body-sm text-fg-muted">Showing the period containing {date}.</p>}
-    </div>
-  );
 }
 
 export function GoalsTabs() {
