@@ -100,7 +100,12 @@ function LoadedGoalForm({
     name: name.trim() === '' ? 'Give the goal a name.' : null,
     amount: amount === null || amount <= 0 ? 'Enter a target greater than 0.' : null,
     date:
-      date === '' ? 'Choose a target date.' : date < today ? 'Choose today or a later date.' : null,
+      date === ''
+        ? 'Choose a target date.'
+        : // BR-10 applies to a date being chosen: an overdue goal can still be renamed.
+          date < today && date !== initial?.target_date
+          ? 'Choose today or a later date.'
+          : null,
   };
   const valid = !errors.name && !errors.amount && !errors.date;
   const show = (field: keyof typeof errors) =>

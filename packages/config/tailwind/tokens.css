@@ -166,6 +166,11 @@
   --dur-celebrate: 1200ms;
   /* How far a confetti piece falls during the celebration (F9-11). */
   --confetti-fall: 60vh;
+  /* Per-piece drift and start stagger, multiplied per piece (F9-11). */
+  --confetti-drift: 4vw;
+  --confetti-stagger: 40ms;
+  /* The short haptic pulse on completion, where supported. */
+  --dur-haptic: 40ms;
   --dur-fade: 100ms; /* the only motion that survives reduced motion */
   --delay-skeleton: 150ms; /* skeletons appear only after this (§19.1) */
   --dur-toast: 5000ms;
@@ -238,5 +243,6 @@
     --dur-shimmer: 0ms;
     --dur-spin: 0ms;
     --dur-chart: 0ms;
+    --dur-haptic: 0ms;
   }
 }

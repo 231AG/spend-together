@@ -2,6 +2,7 @@
 
 import {
   endpoints,
+  type GoalDetail,
   type CreateContributionRequest,
   type CreateGoalRequest,
   type PatchContributionRequest,
@@ -59,14 +60,33 @@ export function useDeleteGoal() {
   });
 }
 
-/** Refetch the goal now (not just mark it stale) so the caller can see the new status. */
-async function freshGoal(qc: QueryClient, goalId: string) {
-  await invalidateGoalDependents(qc);
-  return qc.query({
-    queryKey: queryKeys.goal(goalId),
-    queryFn: () => apiClient.call(endpoints.getGoal, { params: { id: goalId } }),
-    staleTime: 0,
+/**
+ * After a contribution is stored: fetch the goal once (every screen showing it updates
+ * from the cache) and refresh everything else in the background. A failed reload is not a
+ * failed save — the write already succeeded — so it yields null rather than an error.
+ */
+async function freshGoal(qc: QueryClient, goalId: string): Promise<GoalDetail | null> {
+  const detail = queryKeys.goal(goalId);
+  let goal: GoalDetail | null;
+  try {
+    goal = await qc.query({
+      queryKey: detail,
+      queryFn: () => apiClient.call(endpoints.getGoal, { params: { id: goalId } }),
+      staleTime: 0,
+    });
+  } catch {
+    goal = null;
+  }
+  void qc.invalidateQueries({
+    queryKey: ['goals'],
+    predicate: (q) => q.queryKey.join('/') !== detail.join('/'),
   });
+  void Promise.all(
+    [['home'], ['insights'], queryKeys.activity].map((queryKey) =>
+      qc.invalidateQueries({ queryKey: [...queryKey] }),
+    ),
+  );
+  return goal;
 }
 
 export function useCreateContribution(goalId: string) {

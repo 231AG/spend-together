@@ -91,12 +91,15 @@ export function projectionText(goal: GoalDetail, today: string | null): string {
 }
 
 /** "50% · $600.00 to go · 105 days left" (W-06). */
-export function heroLine(goal: GoalSummary, money: MoneyOf): string {
+export function heroLine(goal: GoalSummary, money: MoneyOf, overdue = false): string {
   const pct = progressLabel(goal.progress_pct, goal.status === 'completed');
   if (goal.status === 'completed') return `${pct} · Goal reached`;
+  const toGo = `${formatMoney(money(goal.remaining.amount_minor, goal.currency))} to go`;
+  // Past its date there is no "0 days left" (F-14 clamps at 0): say what is true.
+  if (overdue) return `${pct} · ${toGo} · Overdue`;
   const days =
     goal.days_remaining === 1 ? '1 day left' : `${String(goal.days_remaining)} days left`;
-  return `${pct} · ${formatMoney(money(goal.remaining.amount_minor, goal.currency))} to go · ${days}`;
+  return `${pct} · ${toGo} · ${days}`;
 }
 
 /**

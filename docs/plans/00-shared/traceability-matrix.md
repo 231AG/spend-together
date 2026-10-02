@@ -25,13 +25,13 @@ Status: ☐ not started · ◐ in progress · ☑ evidenced by a passing test.
 | FR-09 | Activity grouped by date with filters and search | F7, B5 | `apps/web/e2e/transactions.spec.ts` (URL filters, states), `transactions.test.tsx` (paging), `activity.filters.test.ts` | ◐ (UI ☑) |
 | FR-10 | Home for today/week/month with six metrics | F8, B5 | `apps/web/e2e/home-insights.spec.ts`, `components/features/charts/charts.test.tsx` (hero), `home.summary.test.ts` | ◐ (UI ☑) |
 | FR-11 | Insights daily/weekly/monthly with comparison | F8, B5 | `apps/web/e2e/home-insights.spec.ts` (W-05 deltas, stepping), `apps/web/lib/insights.test.ts`, `insights.test.ts` | ◐ (UI ☑) |
-| FR-12 | Create individual goal | F9, B5 | `e2e/flows/7.5`, `goals.create.test.ts` | ☐ |
-| FR-13 | Couple goal only with an active couple | F9, B5 | `e2e/flows/7.6`, `goals.couple-required.test.ts` | ☐ |
-| FR-14 | Add contribution in any currency | F9, B5 | `e2e/flows/7.7`, `contributions.create.test.ts` | ☐ |
-| FR-15 | Edit/delete own contributions | F9, B5 | `contributions.mutate.test.ts` | ☐ |
-| FR-16 | Goal details: pace, status, projection, breakdown | F9, B5 | `goal-detail.test.ts`, `domain/goal.test.ts` | ☐ |
-| FR-17 | Goal auto-completes at target | F9, B3 | `goal-completion.test.ts`, pgTAP `sync_goal_completion` | ☐ |
-| FR-18 | Edit goal name/target/date; delete | F9, B5 | `goals.patch.test.ts` | ☐ |
+| FR-12 | Create individual goal | F9, B5 | `apps/web/e2e/goals.spec.ts` (§7.5), `components/features/goals/goals.test.tsx`, `goals.create.test.ts` | ◐ (UI ☑) |
+| FR-13 | Couple goal only with an active couple | F9, B5 | `apps/web/e2e/goals.spec.ts` (§7.6 both ways), `goals.couple-required.test.ts` | ◐ (UI ☑) |
+| FR-14 | Add contribution in any currency | F9, B5 | `apps/web/e2e/goals.spec.ts` (§7.7, LRD preview), `components/features/goals/goals.test.tsx` (preview == server), `contributions.create.test.ts` | ◐ (UI ☑) |
+| FR-15 | Edit/delete own contributions | F9, B5 | `apps/web/e2e/goals.spec.ts` (delete), `apps/web/lib/goals.test.ts` (edit preview), `contributions.mutate.test.ts` | ◐ (UI ☑) |
+| FR-16 | Goal details: pace, status, projection, breakdown | F9, B5 | `apps/web/e2e/goals.spec.ts` (W-06), `apps/web/lib/goals.test.ts` (every status sentence), `domain/goal.test.ts` | ◐ (UI ☑) |
+| FR-17 | Goal auto-completes at target | F9, B3 | `apps/web/e2e/goals.spec.ts` (dialog and full page, reduced motion, no repeat), `components/features/goals/goals.test.tsx`, pgTAP `sync_goal_completion` | ◐ (UI ☑) |
+| FR-18 | Edit goal name/target/date; delete | F9, B5 | `apps/web/e2e/goals.spec.ts` (no currency control), `components/features/goals/goals.test.tsx`, `goals.patch.test.ts` | ◐ (UI ☑) |
 | FR-19 | Invite partner; cancel and resend | F10, B5, B7 | `e2e/flows/7.8`, `couple.invite.test.ts` | ☐ |
 | FR-20 | Couple screen: three states, no private data | F10, B2, B5 | `couple-privacy.test.ts`, pgTAP RLS suite | ☐ |
 | FR-21 | End couple with consequences | F10, B3, B5 | `e2e/flows/7.9`, pgTAP `end_couple` | ☐ |
@@ -51,12 +51,12 @@ Status: ☐ not started · ◐ in progress · ☑ evidenced by a passing test.
 | WAC-04 | Same for expenses incl. category totals and % | F7, F8, B5 | `apps/web/e2e/home-insights.spec.ts` (expense moves totals and the Food category) | ◐ (UI ☑ against MSW; live with B5) |
 | WAC-05 | Home matches F-01…F-06 for all three periods | F2, F8, B3, B5 | `packages/domain/test/*.test.ts`, `apps/web/e2e/home-insights.spec.ts` (month vs §6.5; today/week render) | ◐ (domain ☑, UI ☑ month) |
 | WAC-06 | Zero income → "N/A", no errors anywhere | F2, F8, B5 | `packages/domain/test/*.test.ts` **T-02**, `apps/web/e2e/home-insights.spec.ts` (zero income, no console errors) | ◐ (domain ☑, UI ☑) |
-| WAC-07 | Individual goals with inline validation | F9, B5 | `e2e/flows/7.5`, `goals.validation.test.ts` | ☐ |
-| WAC-08 | Couple goals gated; 409 COUPLE_REQUIRED | F9, B5 | `goals.couple-required.test.ts` | ☐ |
-| WAC-09 | Balance always equals sum of contributions | F2, B3, B5 | `packages/domain/test/*.test.ts`, pgTAP `goal_balances` | ◐ (domain ☑) |
-| WAC-10 | Progress/remaining/pace/status/projection match F-11…F-20 | F2, F9, B5 | `packages/domain/test/*.test.ts` **T-04…T-10** | ◐ (domain ☑) |
-| WAC-11 | Completion immediate and reversible | F9, B3 | `goal-completion.test.ts`, pgTAP trigger (both directions) | ☐ |
-| WAC-12 | Couple contributions visible with names; nothing else | F10, B2, B8 | `couple-privacy.test.ts`, pgTAP four-role suite, `e2e/couple-two-user`, `apps/web/mocks/privacy.test.ts` (F4, mock) | ◐ (mock ☑) |
+| WAC-07 | Individual goals with inline validation | F9, B5 | `apps/web/e2e/goals.spec.ts` (§7.5), `components/features/goals/goals.test.tsx` (BR-10), `goals.validation.test.ts` | ◐ (UI ☑) |
+| WAC-08 | Couple goals gated; 409 COUPLE_REQUIRED | F9, B5 | `apps/web/e2e/goals.spec.ts` (disabled option + reason), `apps/web/mocks/rules.test.ts` (409), `goals.couple-required.test.ts` | ◐ (UI ☑, mock ☑) |
+| WAC-09 | Balance always equals sum of contributions | F2, B3, B5 | `packages/domain/test/*.test.ts`, `components/features/goals/goals.test.tsx` (after save), `apps/web/e2e/goals.spec.ts` (after delete), pgTAP `goal_balances` | ◐ (domain ☑, UI ☑) |
+| WAC-10 | Progress/remaining/pace/status/projection match F-11…F-20 | F2, F9, B5 | `packages/domain/test/*.test.ts` **T-04…T-10**, `apps/web/e2e/goals.spec.ts` (W-06 $5.71/$40.00/$173.93) | ◐ (domain ☑, UI ☑) |
+| WAC-11 | Completion immediate and reversible | F9, B3 | `apps/web/e2e/goals.spec.ts` (complete, then delete un-completes), pgTAP trigger (both directions) | ◐ (UI ☑) |
+| WAC-12 | Couple contributions visible with names; nothing else | F10, B2, B8 | `couple-privacy.test.ts`, pgTAP four-role suite, `e2e/couple-two-user`, `apps/web/mocks/privacy.test.ts` (F4, mock), `apps/web/e2e/goals.spec.ts` (names only on a couple goal) | ◐ (mock ☑, goal UI ☑) |
 | WAC-13 | Insights correct across timezone and month boundaries | F2, F8, B3 | `packages/domain/test/*.test.ts` **T-13, T-14**, `apps/web/e2e/home-insights.spec.ts` (Sep → Aug stepping), pgTAP `spending_series` | ◐ (domain ☑, UI ☑) |
 | WAC-14 | Non-base entry stored with original; preview == saved | F7, B6 | `apps/web/lib/transactions.test.ts`, `apps/web/e2e/transactions.spec.ts` (LRD, back-dated), `packages/domain/test/*.test.ts` **T-11** | ◐ (domain ☑, UI ☑) |
 | WAC-15 | Base-currency change re-expresses, preserves originals | F11, B6 | `e2e/flows/7.10`, `recalc.test.ts` | ☐ |

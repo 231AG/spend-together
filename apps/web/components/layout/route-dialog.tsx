@@ -11,6 +11,16 @@ import { focusGlobalAdd } from '@/components/features/add-sheet';
 
 const CloseContext = createContext<(() => void) | null>(null);
 
+// Set when a route dialog closes: its Back navigation must not have its focus return
+// overridden by RouteFocus, whichever of the two runs first. Read once, then reset.
+let dialogFocusReturn = false;
+
+export function consumeDialogFocusReturn(): boolean {
+  const claimed = dialogFocusReturn;
+  dialogFocusReturn = false;
+  return claimed;
+}
+
 /** Inside a route dialog: close it the same way Esc does (Back). Null on a full page. */
 export function useCloseRouteDialog(): (() => void) | null {
   return useContext(CloseContext);
@@ -28,6 +38,7 @@ export function RouteDialog({
   const router = useRouter();
   const [open, setOpen] = useState(true);
   const close = () => {
+    dialogFocusReturn = true;
     setOpen(false);
     router.back();
   };

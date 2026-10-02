@@ -4,6 +4,7 @@ import type { Contribution, GoalDetail } from '@spendtogether/schemas';
 import { Archive, CalendarClock, Clock, Pencil, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { Dialog } from '@/components/ui/dialog';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -14,7 +15,6 @@ import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { ProgressBar } from '@/components/ui/progress-bar';
 import { GoalIcon } from '@/components/ui/goal-icon';
 import { StatusChip } from '@/components/ui/status-chip';
-import { ApiError } from '@/lib/api-client';
 import { formatMoney, type MoneyDisplay } from '@/lib/format-money';
 import {
   contributionDate,
@@ -24,8 +24,10 @@ import {
   shortDate,
   statusSentence,
 } from '@/lib/goals';
-import { useContributions, useCurrencies, useGoal, useMe, useToday } from '@/lib/queries';
+import { money as toMoney } from '@/lib/insights';
+import { useContributions, useCurrencies, useMe, useToday } from '@/lib/queries';
 import { CompletionCelebration } from './completion-celebration';
+import { ARCHIVED_COPY, GoalGate } from './goal-gate';
 import { ContributionForm } from './contribution-form';
 import { useDeleteContribution } from './use-goal-mutations';
 
@@ -38,38 +40,7 @@ const addLink =
   'inline-flex min-h-(--touch-min) items-center justify-center rounded-md bg-action-primary-bg px-5 type-label text-action-primary-fg hover:bg-action-primary-bg-hover';
 
 export function GoalDetails({ id }: { id: string }) {
-  const goal = useGoal(id);
-  if (goal.isPending) {
-    return (
-      <div className="flex flex-col gap-4">
-        <LoadingSkeleton shape="hero" label="Loading goal" />
-        <LoadingSkeleton shape="card" count={2} />
-      </div>
-    );
-  }
-  if (goal.isError) {
-    if (goal.error instanceof ApiError && goal.error.status === 404) {
-      return (
-        <EmptyState
-          title="We couldn't find that"
-          body="It may have been deleted."
-          action={
-            <Link href="/goals" className="type-label text-fg-link underline">
-              Back to goals
-            </Link>
-          }
-        />
-      );
-    }
-    return (
-      <ErrorState
-        message="We couldn't load this goal."
-        onRetry={() => void goal.refetch()}
-        retrying={goal.isFetching}
-      />
-    );
-  }
-  return <Loaded goal={goal.data} />;
+  return <GoalGate id={id}>{(goal) => <Loaded goal={goal} />}</GoalGate>;
 }
 
 function Loaded({ goal }: { goal: GoalDetail }) {
@@ -77,10 +48,8 @@ function Loaded({ goal }: { goal: GoalDetail }) {
   const me = useMe();
   const { byCode } = useCurrencies();
   const contributions = useContributions(goal.id);
-  const money = (amountMinor: number, currency = goal.currency): MoneyDisplay => {
-    const m = byCode.get(currency);
-    return { amountMinor, currency, ...(m ? { exponent: m.exponent, symbol: m.symbol } : {}) };
-  };
+  const money = (amountMinor: number, currency = goal.currency): MoneyDisplay =>
+    toMoney(amountMinor, currency, byCode.get(currency));
   const fmt = (minor: number) => formatMoney(money(minor));
   const archived = goal.archived_at !== null;
   const completed = goal.status === 'completed';
@@ -99,8 +68,7 @@ function Loaded({ goal }: { goal: GoalDetail }) {
             strokeWidth={1.75}
           />
           <p className="type-body-lg text-fg-body">
-            This goal is read-only since you ended the connection. Its history stays here for both
-            of you.
+            {ARCHIVED_COPY} Its history stays here for both of you.
           </p>
         </div>
       )}
@@ -134,7 +102,9 @@ function Loaded({ goal }: { goal: GoalDetail }) {
           valueText={`${pct} saved, ${saved} of ${target}`}
           tone="saving"
         />
-        <p className="num type-body-sm text-fg-body">{heroLine(goal, (m, c) => money(m, c))}</p>
+        <p className="num type-body-sm text-fg-body">
+          {heroLine(goal, (m, c) => money(m, c), goal.required_pace.overdue)}
+        </p>
       </section>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -311,7 +281,7 @@ function ContributionHistory({
         onRetry={() => void contributions.refetch()}
       />
     );
-  else if (contributions.data.data.length === 0)
+  else if (contributions.data.pages.every((p) => p.data.length === 0))
     body = (
       <EmptyState
         title="No contributions yet"
@@ -321,50 +291,52 @@ function ContributionHistory({
   else
     body = (
       <ul className="flex flex-col divide-y divide-border-default">
-        {contributions.data.data.map((c) => {
-          const inGoal = formatMoney(money(c.goal_amount.amount_minor));
-          const foreign = c.amount.currency !== goal.currency;
-          const original = formatMoney(money(c.amount.amount_minor, c.amount.currency), {
-            baseCurrency: goal.currency,
-          });
-          return (
-            <li key={c.id} className="flex items-start gap-3 py-3">
-              <div className="flex flex-1 flex-col">
-                <span className="num type-label text-fg-default">
-                  {inGoal}
-                  {foreign && <span className="type-body-sm text-fg-muted"> · {original}</span>}
-                </span>
-                <span className="type-body-sm text-fg-muted">
-                  {[
-                    contributionDate(c.contribution_date),
-                    couple ? (c.is_own ? 'You' : c.contributor.name) : null,
-                    c.note,
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')}
-                </span>
-              </div>
-              {c.is_own && !readOnly && (
-                <div className="flex gap-1">
-                  <IconButton
-                    label={`Edit contribution of ${inGoal} on ${contributionDate(c.contribution_date)}`}
-                    icon={<Pencil />}
-                    onClick={() => {
-                      setEditing(c);
-                    }}
-                  />
-                  <IconButton
-                    label={`Delete contribution of ${inGoal} on ${contributionDate(c.contribution_date)}`}
-                    icon={<Trash2 />}
-                    onClick={() => {
-                      setDeleting(c);
-                    }}
-                  />
+        {contributions.data.pages
+          .flatMap((p) => p.data)
+          .map((c) => {
+            const inGoal = formatMoney(money(c.goal_amount.amount_minor));
+            const foreign = c.amount.currency !== goal.currency;
+            const original = formatMoney(money(c.amount.amount_minor, c.amount.currency), {
+              baseCurrency: goal.currency,
+            });
+            return (
+              <li key={c.id} className="flex items-start gap-3 py-3">
+                <div className="flex flex-1 flex-col">
+                  <span className="num type-label text-fg-default">
+                    {inGoal}
+                    {foreign && <span className="type-body-sm text-fg-muted"> · {original}</span>}
+                  </span>
+                  <span className="type-body-sm text-fg-muted">
+                    {[
+                      contributionDate(c.contribution_date),
+                      couple ? (c.is_own ? 'You' : c.contributor.name) : null,
+                      c.note,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </span>
                 </div>
-              )}
-            </li>
-          );
-        })}
+                {c.is_own && !readOnly && (
+                  <div className="flex gap-1">
+                    <IconButton
+                      label={`Edit contribution of ${inGoal} on ${contributionDate(c.contribution_date)}`}
+                      icon={<Pencil />}
+                      onClick={() => {
+                        setEditing(c);
+                      }}
+                    />
+                    <IconButton
+                      label={`Delete contribution of ${inGoal} on ${contributionDate(c.contribution_date)}`}
+                      icon={<Trash2 />}
+                      onClick={() => {
+                        setDeleting(c);
+                      }}
+                    />
+                  </div>
+                )}
+              </li>
+            );
+          })}
       </ul>
     );
 
@@ -382,6 +354,16 @@ function ContributionHistory({
         </FormNotice>
       )}
       {body}
+      {contributions.hasNextPage && (
+        <Button
+          variant="secondary"
+          className="self-start"
+          loading={contributions.isFetchingNextPage}
+          onClick={() => void contributions.fetchNextPage()}
+        >
+          Load more
+        </Button>
+      )}
       <Dialog
         open={editing !== null}
         onOpenChange={(open) => {

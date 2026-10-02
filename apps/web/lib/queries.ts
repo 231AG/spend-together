@@ -2,7 +2,7 @@
 
 import { localDate } from '@spendtogether/domain';
 import { endpoints } from '@spendtogether/schemas';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { ApiError, apiClient } from './api-client';
 import { appClock } from './clock';
@@ -149,15 +149,17 @@ export function useGoal(id: string) {
   });
 }
 
-/** Contribution history, newest first (one page of 100 is plenty for a goal). */
+/** Contribution history, newest first, 50 per page with "Load more" (no silent cut-off). */
 export function useContributions(goalId: string) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: queryKeys.contributions(goalId),
-    queryFn: () =>
+    queryFn: ({ pageParam }) =>
       apiClient.call(endpoints.listContributions, {
         params: { id: goalId },
-        query: { limit: 100 },
+        query: { limit: 50, ...(pageParam ? { cursor: pageParam } : {}) },
       }),
+    initialPageParam: null as string | null,
+    getNextPageParam: (last) => last.next_cursor,
   });
 }
 

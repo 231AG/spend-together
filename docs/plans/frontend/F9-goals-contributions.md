@@ -155,3 +155,30 @@ formulas are already proven in F2.
 Owner reviews: creating a goal and contributing to completion; the celebration with
 reduced motion on and off; deleting a contribution and watching the goal un-complete; the
 disabled couple option; and an archived couple goal. Then F10 may start.
+
+## 12. As built (2 Oct 2026)
+
+- **Screens** (`components/features/goals/`): `GoalsView` (My/Our goals in the URL,
+  1/2/3-column grid, collapsed Completed section, the three empty states), `GoalForm`
+  (create with type, name, icon picker, target + currency, date; edit without currency
+  or type; delete with confirmation), `GoalDetails` (hero, required pace, plain-language
+  status, projection, C-07 contributor breakdown, paged contribution history with
+  edit/delete for own entries, archived banner, sticky Add on phones), `ContributionForm`
+  ("After this" preview, ≈ goal-currency conversion), `AddContribution` (dialog or page),
+  `CompletionCelebration`, and `GoalGate` for loading/404/error/read-only.
+- **Helpers:** `lib/goals.ts` (icons, status sentences from the microcopy table, hero line,
+  projection, `afterThis`), `lib/celebration.ts` (transition-only, screen-owned).
+  `GoalCard` gains the goal icon and the same progress label.
+- **Tokens:** `--confetti-fall/-drift/-stagger`, `--dur-haptic`, `--fab-clearance`.
+- **Self-audit** (high-effort code review before merge): ten findings, all fixed —
+  full-page completion now celebrates, overdue goals are editable and say "Overdue",
+  history pages beyond 100, one goal fetch per save with reload failures not reported as
+  failed saves, celebration values as tokens, shared money helper and `GoalGate`, and the
+  route-focus claim moved into `RouteDialog` (D-75…D-80).
+- **Tests:** `lib/goals.test.ts` (every status sentence, overdue, projection, hero, After
+  this, celebration ownership), `components/features/goals/goals.test.tsx` (After this ==
+  server after save, in goal and foreign currency; completion; edit has no currency;
+  overdue rename; BR-10; status chips), `e2e/goals.spec.ts` (W-06 list and details, flows
+  7.5–7.7, couple gating both ways, completion and reversal, reduced motion and no repeat,
+  full-page completion, LRD preview, BR-15 edit, archived goal, states) at 360 / 768 /
+  1280 px.

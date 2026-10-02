@@ -140,10 +140,11 @@ function LoadedContributionForm({
     setProblem(null);
     const trimmed = note.trim();
     const wasCompleted = goal.status === 'completed';
-    const done = (result: { goal: GoalDetail }, contributionId: string) => {
-      const completedNow = !wasCompleted && result.goal.status === 'completed';
+    const done = (result: { goal: GoalDetail | null }, contributionId: string) => {
+      // If the goal couldn't be reloaded the save still stands; only the celebration waits.
+      const completedNow = !wasCompleted && result.goal?.status === 'completed';
       if (completedNow) celebrate(goal.id, contributionId);
-      onSaved({ goal: result.goal, completedNow });
+      onSaved({ goal: result.goal ?? goal, completedNow });
     };
     if (!initial) {
       create.mutate(

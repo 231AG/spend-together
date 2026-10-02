@@ -66,7 +66,7 @@ throwaway and is replaced by real components in F3. Status: **Approved by owner,
 | F6 | Auth and onboarding UI | F3, F4, F5 | 4 d | Low | **Complete** — 7 screens + splash, enumeration-safe copy, flows 7.1/7.2 in Playwright, ADR-012 resend |
 | F7 | Transactions | F3, F4, F5 | 7 d | Medium | **Complete** — add/edit/delete with Undo, live conversion (preview == saved), Activity with URL filters and split view |
 | F8 | Home dashboard and Insights | F3, F4, F7 | 7 d | Medium | **Complete** — Home ($330.00 hero, no chart needed), Insights with C-01/C-02/C-03/C-05/C-06 and tables, analytics events; self-audited |
-| F9 | Goals and contributions | F2, F3, F4, F5 | 6 d | Low | Not started |
+| F9 | Goals and contributions | F2, F3, F4, F5 | 6 d | Low | **Complete** — goals list, create/edit/delete, details with pace/status/projection/contributors, contributions with "After this", completion celebration and reversal; self-audited |
 | F10 | Couple and invitations | F3, F4, F5, F9 | 4 d | Low | Not started |
 | F11 | Profile and settings | F3, F4, F5, F8 | 4 d | Low | Not started |
 | F12 | PWA and offline | F5, F7, F9, F11 | 5 d | **High** | Not started |

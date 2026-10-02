@@ -11,6 +11,8 @@ import { useMediaQuery } from '@/lib/use-media-query';
 // an announced message. Never under reduced motion (the message alone remains), never
 // blocking (pointer-events: none on the pieces), and skippable.
 
+/** Few pieces on purpose: restrained (§13 SCR-18). */
+const CONFETTI_PIECES = 18;
 const PIECES = [
   'chart-income',
   'chart-saving',
@@ -24,8 +26,8 @@ export function CompletionCelebration({ goalId, goalName }: { goalId: string; go
   // A stable identity for this screen: only screens open when the goal completed qualify.
   const [owner] = useState(() => ({}));
   const subscribe = useCallback(
-    (listener: () => void) => subscribeCelebration(owner, listener),
-    [owner],
+    (listener: () => void) => subscribeCelebration(owner, goalId, listener),
+    [owner, goalId],
   );
   const pending = useSyncExternalStore(
     subscribe,
@@ -37,10 +39,14 @@ export function CompletionCelebration({ goalId, goalName }: { goalId: string; go
 
   useEffect(() => {
     if (!active) return;
-    if (!reduced && typeof navigator.vibrate === 'function') navigator.vibrate(40);
+    const haptic = readToken('dur-haptic');
+    if (!reduced && haptic > 0 && typeof navigator.vibrate === 'function')
+      navigator.vibrate(haptic);
     // The message stays for the toast's reading time; the motion ends at dur-celebrate.
-    const ms = Math.max(readToken('dur-celebrate'), readToken('dur-toast'));
-    const timer = setTimeout(clearCelebration, ms || 5000);
+    const timer = setTimeout(
+      clearCelebration,
+      Math.max(readToken('dur-celebrate'), readToken('dur-toast')),
+    );
     return () => {
       clearTimeout(timer);
     };
@@ -54,7 +60,7 @@ export function CompletionCelebration({ goalId, goalName }: { goalId: string; go
           aria-hidden
           className="pointer-events-none fixed inset-x-0 top-0 z-(--z-toast) flex justify-center overflow-visible"
         >
-          {Array.from({ length: 18 }, (_, i) => (
+          {Array.from({ length: CONFETTI_PIECES }, (_, i) => (
             <span
               key={i}
               className="confetti absolute top-0 block size-2 rounded-sm"
@@ -62,8 +68,9 @@ export function CompletionCelebration({ goalId, goalName }: { goalId: string; go
                 {
                   left: `${String(10 + ((i * 47) % 80))}%`,
                   background: `var(--${PIECES[i % PIECES.length] ?? 'chart-saving'})`,
-                  '--confetti-x': `${String(((i % 5) - 2) * 4)}vw`,
-                  '--confetti-delay': `${String((i % 6) * 40)}ms`,
+                  // Multiples of the drift and stagger tokens spread the pieces out.
+                  '--confetti-x': `calc(var(--confetti-drift) * ${String((i % 5) - 2)})`,
+                  '--confetti-delay': `calc(var(--confetti-stagger) * ${String(i % 6)})`,
                 } as React.CSSProperties
               }
             />

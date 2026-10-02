@@ -102,6 +102,19 @@ describe('GoalForm', () => {
     ).toEqual([]);
   });
 
+  it('an overdue goal can still be renamed: BR-10 applies only to a new date', async () => {
+    const user = userEvent.setup();
+    const goal = { ...(await laptop()), target_date: '2026-09-01' };
+    render(wrap(<GoalForm initial={goal} />));
+    const name = await screen.findByLabelText('Name');
+    await user.clear(name);
+    await user.type(name, 'New Laptop (overdue)');
+    expect(screen.getByRole('button', { name: 'Save changes' })).toHaveProperty('disabled', false);
+    await user.clear(screen.getByLabelText('Target date'));
+    await user.type(screen.getByLabelText('Target date'), '2026-09-10');
+    expect(screen.getByRole('button', { name: 'Save changes' })).toHaveProperty('disabled', true);
+  });
+
   it('create keeps the button disabled until the target and date are valid (BR-10)', async () => {
     const user = userEvent.setup();
     render(wrap(<GoalForm />));

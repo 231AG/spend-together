@@ -86,6 +86,10 @@ describe('projection and hero', () => {
   it('reads "50% · $600.00 to go · 105 days left" (W-06)', () => {
     expect(heroLine(LAPTOP, usd)).toBe('50% · $600.00 to go · 105 days left');
     expect(heroLine({ ...LAPTOP, days_remaining: 1 }, usd)).toContain('1 day left');
+    // Overdue: never "0 days left".
+    expect(heroLine({ ...LAPTOP, days_remaining: 0 }, usd, true)).toBe(
+      '50% · $600.00 to go · Overdue',
+    );
   });
   it('shows the year only when it differs', () => {
     expect(shortDate('2026-12-31', TODAY)).toBe('31 Dec');
@@ -122,14 +126,28 @@ describe('afterThis (SCR-18 preview == post-save state)', () => {
 describe('celebration scoping (F9-11)', () => {
   it('belongs to the screens open at completion, not to a later visit', () => {
     const open = {};
-    const unsubscribe = subscribeCelebration(open, () => undefined);
+    const unsubscribe = subscribeCelebration(open, 'goal-1', () => undefined);
     celebrate('goal-1', 'c-1');
     expect(celebrationFor(open)).toEqual({ goalId: 'goal-1', contributionId: 'c-1' });
     const revisit = {};
-    subscribeCelebration(revisit, () => undefined);
+    subscribeCelebration(revisit, 'goal-1', () => undefined);
     expect(celebrationFor(revisit)).toBeNull();
     clearCelebration();
     expect(celebrationFor(open)).toBeNull();
     unsubscribe();
+  });
+
+  it('with no goal screen open (full-page contribute), the next one claims it once', () => {
+    celebrate('goal-2', 'c-2');
+    const other = {};
+    subscribeCelebration(other, 'goal-9', () => undefined);
+    expect(celebrationFor(other)).toBeNull();
+    const next = {};
+    subscribeCelebration(next, 'goal-2', () => undefined);
+    expect(celebrationFor(next)).toEqual({ goalId: 'goal-2', contributionId: 'c-2' });
+    const later = {};
+    subscribeCelebration(later, 'goal-2', () => undefined);
+    expect(celebrationFor(later)).toBeNull();
+    clearCelebration();
   });
 });

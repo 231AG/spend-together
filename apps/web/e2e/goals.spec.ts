@@ -231,3 +231,19 @@ test('goals load failure offers Retry', async ({ page }) => {
   await expect(page.getByText("We couldn't load your goals.")).toBeVisible({ timeout: 20_000 });
   await expect(page.getByRole('button', { name: /Retry/ })).toBeVisible();
 });
+
+test('completing a goal from the full-page form still celebrates on the goal', async ({ page }) => {
+  await useScenario(page, 'goalAboutToComplete');
+  await page.goto('/goals');
+  await expectPage(page, 'Goals');
+  await openGoal(page, 'New Laptop');
+  const href = await page.getByRole('link', { name: 'Add contribution' }).getAttribute('href');
+  // A direct load renders the full page (no dialog); the scenario reseeds identically.
+  await page.goto(href ?? '');
+  await expectPage(page, 'Add contribution');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.getByLabel('Amount').fill('20');
+  await page.getByRole('button', { name: 'Add contribution' }).click();
+  await expect(page.getByRole('heading', { level: 2, name: 'New Laptop' })).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: 'Goal reached!' })).toBeVisible();
+});
