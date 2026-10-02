@@ -1,9 +1,10 @@
-import { roundPct1 } from '@spendtogether/domain';
 import { CalendarDays } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/cn';
 import { formatShortDate } from '@/lib/format-date';
 import { formatMoney, type MoneyDisplay } from '@/lib/format-money';
+import { progressLabel } from '@/lib/goals';
+import { GoalIcon } from './goal-icon';
 import { ProgressBar } from './progress-bar';
 import { StatusChip, type GoalStatus } from './status-chip';
 
@@ -20,6 +21,8 @@ export interface GoalCardData {
   targetDate: string;
   status: GoalStatus;
   overdue?: boolean;
+  /** The goal's icon key (SCR-15 "icon, name, …"). */
+  icon?: string;
 }
 
 export interface GoalCardProps {
@@ -32,8 +35,8 @@ export interface GoalCardProps {
 export function GoalCard({ goal, href, compact = false, locale }: GoalCardProps) {
   const saved = formatMoney(goal.saved);
   const target = formatMoney(goal.target);
-  // Display rounding from the domain (§6.1): one decimal, ties away from zero.
-  const pct = `${String(roundPct1(goal.progressPct))}%`;
+  // §6.1 display rounding; an unfinished goal never reads 100%.
+  const pct = progressLabel(goal.progressPct, goal.status === 'completed');
   return (
     <Link
       href={href}
@@ -43,7 +46,8 @@ export function GoalCard({ goal, href, compact = false, locale }: GoalCardProps)
       )}
     >
       <span className="flex items-start justify-between gap-2">
-        <span className="flex flex-col">
+        {goal.icon !== undefined && <GoalIcon icon={goal.icon} />}
+        <span className="flex flex-1 flex-col">
           <span className="type-label text-fg-default">{goal.name}</span>
           {goal.type === 'couple' && (
             <span className="type-caption text-fg-muted">Shared goal</span>

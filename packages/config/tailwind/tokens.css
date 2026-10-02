@@ -164,6 +164,8 @@
   --dur-base: 200ms;
   --dur-slow: 320ms;
   --dur-celebrate: 1200ms;
+  /* How far a confetti piece falls during the celebration (F9-11). */
+  --confetti-fall: 60vh;
   --dur-fade: 100ms; /* the only motion that survives reduced motion */
   --delay-skeleton: 150ms; /* skeletons appear only after this (§19.1) */
   --dur-toast: 5000ms;
@@ -202,6 +204,8 @@
   --fab-size: 56px;
   /* §12.2: the FAB sits 16 px above the tab bar (and its safe area). */
   --fab-bottom: calc(var(--tabbar-total) + var(--space-4));
+  /* Room a bottom action bar leaves on its right for the FAB (F9 goal details). */
+  --fab-clearance: calc(var(--fab-size) + var(--space-4) * 2);
   /* Room kept below mobile content so the tab bar and FAB never cover it. */
   --mobile-content-bottom: calc(var(--tabbar-total) + var(--fab-size) + var(--space-8));
   --avatar: 40px;

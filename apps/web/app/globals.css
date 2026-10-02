@@ -261,6 +261,24 @@
     opacity: 1;
   }
 }
+/* F9-11 completion confetti: one fall per piece within dur-celebrate (≤ 1.2 s); set
+   --confetti-x (horizontal drift) and --confetti-delay per piece. Gone under reduced motion. */
+@keyframes st-confetti {
+  from {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  to {
+    transform: translate(var(--confetti-x), var(--confetti-fall)) rotate(540deg);
+    opacity: 0;
+  }
+}
+@utility confetti {
+  animation: st-confetti var(--dur-celebrate) var(--ease-exit) var(--confetti-delay, 0ms) forwards;
+  @media (prefers-reduced-motion: reduce) {
+    display: none;
+  }
+}
 @utility spin {
   animation: st-spin var(--dur-spin) linear infinite;
 }
