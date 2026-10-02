@@ -1,17 +1,21 @@
 import { Suspense } from 'react';
-import { GoalTypeControl } from '@/components/features/route-views';
-import { ComingInPhase, PageHeader } from '@/components/layout/page-header';
+import { GoalForm } from '@/components/features/goals/goal-form';
+import { PageHeader } from '@/components/layout/page-header';
 
 // SCR-16 Create goal `/goals/new?type=individual|couple`.
-export default function NewGoalPage() {
+export default async function NewGoalPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const { type } = await searchParams;
   return (
     <>
       <PageHeader title="Create goal" back={{ href: '/goals', label: 'Goals' }} />
-      <div className="flex flex-col gap-6">
+      <div className="max-w-(--dialog-max)">
         <Suspense>
-          <GoalTypeControl />
+          <GoalForm preferCouple={type === 'couple'} />
         </Suspense>
-        <ComingInPhase phase="F9" what="Name, target amount, goal currency and target date." />
       </div>
     </>
   );

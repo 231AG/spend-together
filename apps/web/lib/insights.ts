@@ -110,6 +110,7 @@ export function goalCardData(
   return {
     name: goal.name,
     type: goal.type,
+    icon: goal.icon,
     saved: money(goal.balance.amount_minor, goal.currency, meta),
     target: money(goal.target.amount_minor, goal.currency, meta),
     progressPct: goal.progress_pct,

@@ -2,7 +2,7 @@
 
 import { localDate } from '@spendtogether/domain';
 import { endpoints } from '@spendtogether/schemas';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { ApiError, apiClient } from './api-client';
 import { appClock } from './clock';
@@ -13,6 +13,10 @@ import { appClock } from './clock';
 export const queryKeys = {
   me: ['me'] as const,
   goals: (scope: 'mine' | 'ours' | 'all') => ['goals', scope] as const,
+  goalsWithCompleted: (scope: 'mine' | 'ours') => ['goals', scope, 'with-completed'] as const,
+  goal: (id: string) => ['goals', 'detail', id] as const,
+  contributions: (goalId: string) => ['goals', 'contributions', goalId] as const,
+  couple: ['couple'] as const,
   currencies: ['currencies'] as const,
   categories: (type: 'income' | 'expense' | 'all') => ['categories', type] as const,
   rates: (date: string) => ['exchange-rates', date] as const,
@@ -125,5 +129,44 @@ export function useInsights(period: 'daily' | 'weekly' | 'monthly', date: string
     queryKey: queryKeys.insights(period, date),
     queryFn: () => apiClient.call(INSIGHTS[period], { query: date ? { date } : {} }),
     placeholderData: (previous) => previous,
+  });
+}
+
+/** A goal list including completed goals (SCR-15 shows them collapsed). */
+export function useGoals(scope: 'mine' | 'ours') {
+  return useQuery({
+    queryKey: queryKeys.goalsWithCompleted(scope),
+    queryFn: () => apiClient.call(endpoints.listGoals, { query: { scope, include: 'completed' } }),
+    select: (res) => res.data,
+  });
+}
+
+export function useGoal(id: string) {
+  return useQuery({
+    queryKey: queryKeys.goal(id),
+    queryFn: () => apiClient.call(endpoints.getGoal, { params: { id } }),
+    retry: (count, error) => !(error instanceof ApiError && error.status === 404) && count < 2,
+  });
+}
+
+/** Contribution history, newest first, 50 per page with "Load more" (no silent cut-off). */
+export function useContributions(goalId: string) {
+  return useInfiniteQuery({
+    queryKey: queryKeys.contributions(goalId),
+    queryFn: ({ pageParam }) =>
+      apiClient.call(endpoints.listContributions, {
+        params: { id: goalId },
+        query: { limit: 50, ...(pageParam ? { cursor: pageParam } : {}) },
+      }),
+    initialPageParam: null as string | null,
+    getNextPageParam: (last) => last.next_cursor,
+  });
+}
+
+export function useCouple() {
+  return useQuery({
+    queryKey: queryKeys.couple,
+    queryFn: () => apiClient.call(endpoints.getCouple, {}),
+    staleTime: 60_000,
   });
 }

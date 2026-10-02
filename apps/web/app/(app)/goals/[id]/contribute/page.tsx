@@ -1,4 +1,5 @@
-import { ContributionFormPlaceholder } from '@/components/features/form-placeholders';
+import { Suspense } from 'react';
+import { AddContribution } from '@/components/features/goals/add-contribution';
 import { CancelLink } from '@/components/features/route-views';
 import { PageHeader } from '@/components/layout/page-header';
 
@@ -9,7 +10,9 @@ export default async function ContributePage({ params }: { params: Promise<{ id:
     <>
       <PageHeader title="Add contribution" back={{ href: `/goals/${id}`, label: 'Goal' }} />
       <div className="flex max-w-(--dialog-max) flex-col gap-4">
-        <ContributionFormPlaceholder />
+        <Suspense>
+          <AddContribution goalId={id} />
+        </Suspense>
         <CancelLink href={`/goals/${id}`} />
       </div>
     </>

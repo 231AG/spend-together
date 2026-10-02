@@ -1,11 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import {
-  PeriodSelector,
-  SegmentedControl,
-  type HomePeriod,
-} from '@/components/ui/segmented-control';
+import { PeriodSelector, type HomePeriod } from '@/components/ui/segmented-control';
 import { useUrlParam } from '@/lib/url-state';
 
 // URL-bound view state for the route map (F5-01): every filter and view switch lives in
@@ -21,49 +17,6 @@ export function HomePeriodControl() {
   return <PeriodSelector value={period} onValueChange={setPeriod} />;
 }
 
-export function GoalsTabs() {
-  const [tab, setTab] = useUrlParam<'mine' | 'ours'>('tab', ['mine', 'ours'], 'mine');
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <SegmentedControl
-        label="Goals"
-        value={tab}
-        onValueChange={setTab}
-        options={[
-          { value: 'mine', label: 'My goals' },
-          { value: 'ours', label: 'Our goals' },
-        ]}
-      />
-      <Link
-        href={tab === 'ours' ? '/goals/new?type=couple' : '/goals/new'}
-        className="inline-flex min-h-(--touch-min) items-center rounded-md bg-action-primary-bg px-4 type-label text-action-primary-fg hover:bg-action-primary-bg-hover"
-      >
-        Create goal
-      </Link>
-    </div>
-  );
-}
-
-export function GoalTypeControl() {
-  const [type, setType] = useUrlParam<'individual' | 'couple'>(
-    'type',
-    ['individual', 'couple'],
-    'individual',
-  );
-  return (
-    <SegmentedControl
-      label="Goal type"
-      value={type}
-      onValueChange={setType}
-      options={[
-        { value: 'individual', label: 'Just me' },
-        { value: 'couple', label: 'With my partner' },
-      ]}
-    />
-  );
-}
-
-/** Close control for a full-page form (the dialog version closes with Back). */
 export function CancelLink({ href }: { href: string }) {
   return (
     <Link

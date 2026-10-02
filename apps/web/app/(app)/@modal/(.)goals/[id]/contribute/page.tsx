@@ -1,11 +1,12 @@
-import { ContributionFormPlaceholder } from '@/components/features/form-placeholders';
+import { AddContribution } from '@/components/features/goals/add-contribution';
 import { RouteDialog } from '@/components/layout/route-dialog';
 
 // Intercepted /goals/[id]/contribute: the contribution form as a dialog (§14.1 @modal).
-export default function ContributeDialog() {
+export default async function ContributeDialog({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   return (
     <RouteDialog title="Add contribution">
-      <ContributionFormPlaceholder />
+      <AddContribution goalId={id} />
     </RouteDialog>
   );
 }

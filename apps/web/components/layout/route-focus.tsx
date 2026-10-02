@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
+import { consumeDialogFocusReturn } from './route-dialog';
 
 // F5-06: after a client-side navigation, move focus to the new page's h1 so screen
 // reader and keyboard users start at the top of the new content (the first load keeps
@@ -19,6 +20,8 @@ export function RouteFocus({ containerId = 'content' }: { containerId?: string }
     const container = document.getElementById(containerId);
     const heading = container?.querySelector<HTMLElement>('h1');
     if (!container || !heading) return;
+    // Closing a route dialog returns focus itself (F5-06); this navigation is that close.
+    if (consumeDialogFocusReturn()) return;
     // The new page already placed focus deliberately (e.g. Activity's search via `/`).
     const active = document.activeElement;
     if (active && active !== document.body && container.contains(active)) return;
