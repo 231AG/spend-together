@@ -1,11 +1,15 @@
-import { ComingInPhase, PageHeader } from '@/components/layout/page-header';
+import { Suspense } from 'react';
+import { SecuritySettings } from '@/components/features/profile/security-settings';
+import { PageHeader } from '@/components/layout/page-header';
 
-// Security `/profile/security`.
+// Security `/profile/security` (F11-07).
 export default function SecurityPage() {
   return (
     <>
       <PageHeader title="Security" back={{ href: '/profile', label: 'Profile' }} />
-      <ComingInPhase phase="F11" what="Change your password and sign out of this device." />
+      <Suspense>
+        <SecuritySettings />
+      </Suspense>
     </>
   );
 }

@@ -2,7 +2,7 @@
 
 import { localDate } from '@spendtogether/domain';
 import { endpoints } from '@spendtogether/schemas';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { ApiError, apiClient } from './api-client';
 import { appClock } from './clock';
@@ -178,5 +178,25 @@ export function useInvitation(token: string) {
     queryKey: queryKeys.invitation(token),
     queryFn: () => apiClient.call(endpoints.getInvitationByToken, { params: { token } }),
     retry: (count, error) => !(error instanceof ApiError && error.status === 404) && count < 2,
+  });
+}
+
+/**
+ * PATCH /me (F11). A base-currency change only refreshes /me: dashboards keep showing the
+ * previous values until the recalculation finishes (§11.3 step 3), then everything is
+ * refetched at once (see RecalcWatcher).
+ */
+export function usePatchMe() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: Parameters<typeof apiClient.call<typeof endpoints.patchMe>>[1]['body']) =>
+      apiClient.call(endpoints.patchMe, { body }),
+    onSuccess: (me, body) => {
+      qc.setQueryData(queryKeys.me, me);
+      // A time-zone change moves "today", and with it every period boundary (BR-16).
+      if (body.timezone !== undefined && !me.recalculating) {
+        void qc.invalidateQueries({ predicate: (q) => q.queryKey[0] !== 'me' });
+      }
+    },
   });
 }

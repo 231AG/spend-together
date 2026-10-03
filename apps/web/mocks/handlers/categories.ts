@@ -55,6 +55,10 @@ export const categoryHandlers = [
     }
     if (body.icon !== undefined) c.icon = body.icon;
     if (body.color !== undefined) c.color = body.color;
+    if (body.archived === false && c.archivedAt !== null) {
+      // Restoring brings the name back into use, so it must still be unique.
+      assertUniqueName(user.id, body.name ?? c.name, c.type, c.id);
+    }
     if (body.archived !== undefined)
       c.archivedAt = body.archived ? (c.archivedAt ?? db.nowIso()) : null;
     return category(c);

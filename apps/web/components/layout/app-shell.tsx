@@ -1,7 +1,9 @@
 'use client';
 
 import { RefreshCw } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useEffect, useRef, type ReactNode } from 'react';
+import { SiteFooter } from '@/components/ui/fx-attribution';
 import { OfflineSyncIndicator } from '@/components/ui/offline-sync-indicator';
 import { AddButton, AddSheetProvider } from '@/components/features/add-sheet';
 import {
@@ -31,7 +33,10 @@ export function SkipLink() {
   );
 }
 
-/** §11.3: shown while a base-currency change is recalculating; overlays, never shifts. */
+/**
+ * §11.3 (F11-04): shown while a base-currency change is recalculating; it overlays and
+ * never shifts the layout. The dashboards underneath keep their previous values.
+ */
 function RecalculatingBanner() {
   const me = useMe();
   if (!me.data?.recalculating) return null;
@@ -45,9 +50,38 @@ function RecalculatingBanner() {
         className="spin size-(--icon-sm) shrink-0 text-fg-link"
         strokeWidth={1.75}
       />
-      Updating your totals to your new currency. Figures may change for a moment.
+      Updating your totals to {me.data.base_currency}…
     </div>
   );
+}
+
+/**
+ * §11.3 steps 3–4. While a base-currency change recalculates, cached figures are frozen
+ * (never stale, so revisiting a screen shows the previous values, not a half-converted
+ * mix). When it finishes, everything except /me is refetched at once.
+ */
+export function RecalcWatcher() {
+  const me = useMe();
+  const qc = useQueryClient();
+  const recalculating = me.data?.recalculating ?? false;
+  const was = useRef(false);
+  useEffect(() => {
+    if (recalculating) {
+      was.current = true;
+      const defaults = qc.getDefaultOptions();
+      qc.setDefaultOptions({ ...defaults, queries: { ...defaults.queries, staleTime: Infinity } });
+      return () => {
+        // Unmounting mid-recalculation (e.g. logout) must not leave the cache frozen.
+        qc.setDefaultOptions(defaults);
+      };
+    }
+    if (was.current) {
+      was.current = false;
+      void qc.invalidateQueries({ predicate: (q) => q.queryKey[0] !== 'me' });
+    }
+    return undefined;
+  }, [recalculating, qc]);
+  return null;
 }
 
 function ShellHeader() {
@@ -62,6 +96,7 @@ function ShellHeader() {
         <OfflineSyncIndicator online={online} pendingCount={0} />
       </div>
       <RecalculatingBanner />
+      <RecalcWatcher />
     </header>
   );
 }
@@ -80,6 +115,7 @@ export function AppShell({ children, modal }: { children: ReactNode; modal: Reac
             <main id="content" tabIndex={-1} className="focus:outline-none">
               {children}
             </main>
+            <SiteFooter className="mt-12" />
           </div>
         </div>
         <span className="md:hidden">

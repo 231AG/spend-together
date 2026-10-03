@@ -26,8 +26,11 @@ export function SelectRow({ label, value, icon, href, onClick, className }: Sele
           {icon}
         </span>
       )}
-      <span className="flex-1 type-body-lg text-fg-default">{label}</span>
-      {value && <span className="type-body-sm text-fg-muted">{value}</span>}
+      {/* Label over value below 768 px, side by side above (§21, W-09). */}
+      <span className="flex min-w-0 flex-1 flex-col md:flex-row md:items-center md:gap-3">
+        <span className="flex-1 type-body-lg text-fg-default">{label}</span>
+        {value && <span className="break-words type-body-sm text-fg-muted">{value}</span>}
+      </span>
       <ChevronRight aria-hidden className="size-(--icon-md) text-fg-muted" strokeWidth={1.75} />
     </>
   );
