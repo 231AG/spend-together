@@ -1,14 +1,15 @@
-import { ComingInPhase, PageHeader } from '@/components/layout/page-header';
+import { Suspense } from 'react';
+import { CategoriesView } from '@/components/features/profile/categories-view';
+import { PageHeader } from '@/components/layout/page-header';
 
-// SCR-22 Categories `/profile/categories`.
+// SCR-22 Categories `/profile/categories` (F11-02).
 export default function CategoriesPage() {
   return (
     <>
       <PageHeader title="Categories" back={{ href: '/profile', label: 'Profile' }} />
-      <ComingInPhase
-        phase="F11"
-        what="The default categories, and your own: create, rename, change the icon, or archive."
-      />
+      <Suspense>
+        <CategoriesView />
+      </Suspense>
     </>
   );
 }

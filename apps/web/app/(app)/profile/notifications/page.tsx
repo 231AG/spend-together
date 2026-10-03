@@ -1,14 +1,15 @@
-import { ComingInPhase, PageHeader } from '@/components/layout/page-header';
+import { Suspense } from 'react';
+import { NotificationSettings } from '@/components/features/profile/notification-settings';
+import { PageHeader } from '@/components/layout/page-header';
 
-// Notifications `/profile/notifications` (FR-26).
+// Notifications `/profile/notifications` (F11-06).
 export default function NotificationsPage() {
   return (
     <>
       <PageHeader title="Notifications" back={{ href: '/profile', label: 'Profile' }} />
-      <ComingInPhase
-        phase="F11"
-        what="Emails when your partner accepts an invitation and when a shared goal is completed."
-      />
+      <Suspense>
+        <NotificationSettings />
+      </Suspense>
     </>
   );
 }

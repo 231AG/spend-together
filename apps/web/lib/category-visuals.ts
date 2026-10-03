@@ -1,12 +1,20 @@
 import {
+  Baby,
+  BookOpen,
   BriefcaseBusiness,
   CircleDashed,
   Clapperboard,
+  Coffee,
+  Dumbbell,
   Gift,
   GraduationCap,
   HeartPulse,
+  House,
+  PawPrint,
+  Plane,
   Receipt,
   ShoppingBag,
+  Smartphone,
   TrendingUp,
   Bus,
   Users,
@@ -49,7 +57,53 @@ export const CATEGORY_ICONS: Record<string, LucideIcon> = {
   briefcase: BriefcaseBusiness,
   gift: Gift,
   'trending-up': TrendingUp,
+  dumbbell: Dumbbell,
+  house: House,
+  plane: Plane,
+  'paw-print': PawPrint,
+  baby: Baby,
+  smartphone: Smartphone,
+  coffee: Coffee,
+  'book-open': BookOpen,
 };
+
+/** Icons offered for a custom category (SCR-22), each with the name a screen reader hears. */
+export const CATEGORY_ICON_CHOICES: readonly { key: string; label: string }[] = [
+  { key: 'utensils', label: 'Food' },
+  { key: 'receipt', label: 'Receipt' },
+  { key: 'bus', label: 'Bus' },
+  { key: 'shopping-bag', label: 'Shopping bag' },
+  { key: 'heart-pulse', label: 'Health' },
+  { key: 'graduation-cap', label: 'Graduation cap' },
+  { key: 'clapperboard', label: 'Film' },
+  { key: 'users', label: 'People' },
+  { key: 'wallet', label: 'Wallet' },
+  { key: 'briefcase', label: 'Briefcase' },
+  { key: 'gift', label: 'Gift' },
+  { key: 'trending-up', label: 'Growth' },
+  { key: 'dumbbell', label: 'Fitness' },
+  { key: 'house', label: 'Home' },
+  { key: 'plane', label: 'Travel' },
+  { key: 'paw-print', label: 'Pets' },
+  { key: 'baby', label: 'Baby' },
+  { key: 'smartphone', label: 'Phone' },
+  { key: 'coffee', label: 'Coffee' },
+  { key: 'book-open', label: 'Book' },
+  { key: 'circle-dashed', label: 'Other' },
+];
+
+/** §17.3 colour tokens with a name, so colour is never the only thing that tells them apart. */
+export const CATEGORY_COLOR_CHOICES: readonly { token: CategoryToken; label: string }[] = [
+  { token: 'cat-food', label: 'Amber' },
+  { token: 'cat-entertainment', label: 'Orange' },
+  { token: 'cat-health', label: 'Pink' },
+  { token: 'cat-education', label: 'Violet' },
+  { token: 'cat-bills', label: 'Indigo' },
+  { token: 'cat-transport', label: 'Blue' },
+  { token: 'cat-shopping', label: 'Cyan' },
+  { token: 'cat-family', label: 'Teal' },
+  { token: 'cat-other', label: 'Grey' },
+];
 
 /** The fourteen defaults, by type and name (Q5). */
 export const DEFAULT_CATEGORY_VISUALS: Record<

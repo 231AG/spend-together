@@ -125,3 +125,33 @@ Low uncertainty.
 Owner reviews: archiving a category and confirming history survives; changing base
 currency from USD to EUR with the banner visible and originals preserved; the
 notification toggles; and logout clearing state. Then F12 may start.
+
+## 12. As built (3 Oct 2026)
+
+- **Profile** (`components/features/profile/profile-view.tsx`): initials, name and
+  identifier with Edit profile (name); Preferences with live values (base currency
+  "USD · US Dollar", time zone with device detection, "N categories", "Email: on/off");
+  Couple ("Sam · connected"); Security & account (Change password, Log out); keyboard
+  shortcuts. `SelectRow` stacks label over value below 768 px.
+- **Categories** (`categories-view.tsx`, `category-form.tsx`): Expense / Income; your
+  categories with Edit and Archive; locked defaults with no controls; Archived with Restore;
+  Add with named icons and colours; duplicate names shown on the field (D-90).
+- **Base currency** (`currency-settings.tsx`): searchable picker, impact dialog with the
+  three §11.3 facts and "Your goals keep their own currencies", banner "Updating your
+  totals to EUR…" over the previous figures, then everything refreshed (D-88).
+- **Notifications** (`notification-settings.tsx`): exactly the two `notify_email` boxes.
+- **Security** (`security-settings.tsx`): password link or code to your own identifier
+  (D-87); Log out with the unsynced-entries warning (`log-out-button.tsx`,
+  `lib/session.ts`, D-89).
+- **Attribution:** `components/ui/fx-attribution.tsx` in Settings → Currency and the site
+  footer (D-92).
+- **Self-audit** (high-effort review before merge): ten findings, nine fixed — refresh
+  after a fast recalculation, logout failure and `next` race, store clearing with
+  `allSettled`, staleTime restore, atomic mock restore, shared initials, one live region
+  for the banner, honest name errors. The global-default freeze was kept and its limit
+  logged (D-88).
+- **Tests:** `components/features/profile/profile.test.tsx` (14: live values, rename,
+  locked defaults, add/duplicate/archive/restore, refused restore, history, impact dialog,
+  cancel, freeze then refetch, two switches, logout ×4), `e2e/profile.spec.ts` (§7.10
+  end to end, time zone, categories, notifications, W-09 and logout, security) at 360 /
+  768 / 1280 px, axe clean.
