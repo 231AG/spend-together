@@ -6,6 +6,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { isUnauthenticated, useMe } from '@/lib/queries';
 import { safeNext, withNext } from '@/lib/safe-next';
+import { resetSignedOut, wasSignedOutOnPurpose } from '@/lib/session';
 
 // Session routing (SCR-01, F5-02). In mock mode the session lives in the MSW worker, so
 // these gates run on the client; B4 adds the same checks server-side from the cookie.
@@ -96,13 +97,18 @@ function GatedSession({ mode, children }: { mode: Exclude<Mode, 'any'>; children
       ? safeNext(nextParam)
       : withNext('/setup/currency', nextParam ? safeNext(nextParam) : '');
   } else if (mode !== 'guest' && signedOut) {
-    redirect = withNext('/', currentPath(pathname, search));
+    // After an on-purpose logout the next person starts fresh, not on this path.
+    redirect = wasSignedOutOnPurpose() ? '/' : withNext('/', currentPath(pathname, search));
   } else if (mode === 'app' && onboarded === false) {
     redirect = withNext('/setup/currency', currentPath(pathname, search));
   } else if (mode === 'setup' && onboarded === true) {
     redirect = safeNext(search.get('next'));
   }
 
+  const signedIn = me.data !== undefined;
+  useEffect(() => {
+    if (signedIn) resetSignedOut();
+  }, [signedIn]);
   useEffect(() => {
     if (redirect) router.replace(redirect);
   }, [redirect, router]);

@@ -49,16 +49,15 @@ export const categoryHandlers = [
     const c = visible(user.id).find((x) => x.id === params.id);
     if (!c) throw notFound('That category');
     if (c.isDefault) throw new ApiFailure('CONFLICT', "Default categories can't be changed.");
-    if (body.name !== undefined) {
-      assertUniqueName(user.id, body.name, c.type, c.id);
-      c.name = body.name;
-    }
-    if (body.icon !== undefined) c.icon = body.icon;
-    if (body.color !== undefined) c.color = body.color;
-    if (body.archived === false && c.archivedAt !== null) {
-      // Restoring brings the name back into use, so it must still be unique.
+    // Every check before any write, so a refused PATCH changes nothing (as in one
+    // transaction). Restoring brings the name back into use, so it must be unique too.
+    const restoring = body.archived === false && c.archivedAt !== null;
+    if (body.name !== undefined || restoring) {
       assertUniqueName(user.id, body.name ?? c.name, c.type, c.id);
     }
+    if (body.name !== undefined) c.name = body.name;
+    if (body.icon !== undefined) c.icon = body.icon;
+    if (body.color !== undefined) c.color = body.color;
     if (body.archived !== undefined)
       c.archivedAt = body.archived ? (c.archivedAt ?? db.nowIso()) : null;
     return category(c);

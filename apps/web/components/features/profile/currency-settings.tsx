@@ -78,10 +78,11 @@ export function CurrencySettings() {
         </p>
       </section>
 
+      {/* The shell's banner announces the update; this only explains the disabled picker. */}
       {recalculating && (
-        <p role="status" className="flex items-center gap-2 type-body-sm text-fg-body">
+        <p className="flex items-center gap-2 type-body-sm text-fg-body">
           <RefreshCw aria-hidden className="spin size-(--icon-sm) shrink-0" strokeWidth={1.75} />
-          Updating your totals to {base}…
+          You can change it again once your totals are updated.
         </p>
       )}
 

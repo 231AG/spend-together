@@ -68,11 +68,20 @@ export function RecalcWatcher() {
   useEffect(() => {
     if (recalculating) {
       was.current = true;
-      const defaults = qc.getDefaultOptions();
-      qc.setDefaultOptions({ ...defaults, queries: { ...defaults.queries, staleTime: Infinity } });
+      const staleTime = qc.getDefaultOptions().queries?.staleTime;
+      const setStaleTime = (value: typeof staleTime) => {
+        const current = qc.getDefaultOptions();
+        const queries = { ...current.queries };
+        delete queries.staleTime;
+        qc.setDefaultOptions({
+          ...current,
+          queries: value === undefined ? queries : { ...queries, staleTime: value },
+        });
+      };
+      setStaleTime(Infinity);
+      // Restores only what it changed, also when unmounted mid-recalculation (logout).
       return () => {
-        // Unmounting mid-recalculation (e.g. logout) must not leave the cache frozen.
-        qc.setDefaultOptions(defaults);
+        setStaleTime(staleTime);
       };
     }
     if (was.current) {

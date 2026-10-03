@@ -54,13 +54,14 @@ export function CategoryForm({
 
   const trimmed = name.trim();
   const empty = trimmed === '' ? 'Enter a name.' : null;
-  const conflict =
-    mutation.error instanceof ApiError &&
-    (mutation.error.code === 'CONFLICT' || mutation.error.fields['name'] !== undefined)
+  const apiError = mutation.error instanceof ApiError ? mutation.error : null;
+  // A clash is CONFLICT; any other problem with the name is the server's own message.
+  const nameProblem =
+    apiError?.code === 'CONFLICT'
       ? 'You already have a category with that name.'
-      : null;
-  const nameError = (touched && empty) || conflict;
-  const failed = mutation.isError && !conflict;
+      : (apiError?.fields['name'] ?? null);
+  const nameError = (touched && empty) || nameProblem;
+  const failed = mutation.isError && !nameProblem;
 
   function submit(event: SyntheticEvent) {
     event.preventDefault();
@@ -99,7 +100,7 @@ export function CategoryForm({
         autoComplete="off"
         onChange={(e) => {
           setName(e.target.value);
-          if (conflict) mutation.reset();
+          if (nameProblem) mutation.reset();
         }}
         onBlur={() => {
           setTouched(true);

@@ -68,7 +68,7 @@ throwaway and is replaced by real components in F3. Status: **Approved by owner,
 | F8 | Home dashboard and Insights | F3, F4, F7 | 7 d | Medium | **Complete** — Home ($330.00 hero, no chart needed), Insights with C-01/C-02/C-03/C-05/C-06 and tables, analytics events; self-audited |
 | F9 | Goals and contributions | F2, F3, F4, F5 | 6 d | Low | **Complete** — goals list, create/edit/delete, details with pace/status/projection/contributors, contributions with "After this", completion celebration and reversal; self-audited |
 | F10 | Couple and invitations | F3, F4, F5, F9 | 4 d | Low | **Complete** — couple states, full invitation lifecycle, public landing, end couple with typed name, adversarial privacy test; ADR-013/014; self-audited |
-| F11 | Profile and settings | F3, F4, F5, F8 | 4 d | Low | Not started |
+| F11 | Profile and settings | F3, F4, F5, F8 | 4 d | Low | **Complete** — profile with live values, categories (locked defaults, archive/restore), base-currency change with impact dialog and frozen-then-refreshed totals, notifications, security and logout, FX attribution; self-audited |
 | F12 | PWA and offline | F5, F7, F9, F11 | 5 d | **High** | Not started |
 | F13 | Hardening and frontend acceptance | F0–F12 | 7 d | **High** | Not started |
 

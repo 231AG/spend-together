@@ -16,6 +16,7 @@ import { useOnline } from '@/lib/connectivity';
 import { OFFLINE_BLOCKED, firstName } from '@/lib/couple';
 import { useCategories, useCouple, useCurrencies, useMe, usePatchMe } from '@/lib/queries';
 import { ShortcutSettings } from '../shortcuts/shortcut-settings';
+import { initials } from '../navigation/navigation';
 import { LogOutButton } from './log-out-button';
 
 // SCR-21 Profile & settings (F11-01, F11-08; FR-22). W-09's grouping with live values:
@@ -69,12 +70,7 @@ export function ProfileView() {
           aria-hidden
           className="inline-grid size-(--icon-tile-lg) shrink-0 place-items-center rounded-full bg-action-secondary-bg type-label text-action-secondary-fg"
         >
-          {profile.name
-            .split(/\s+/)
-            .map((part) => part[0] ?? '')
-            .join('')
-            .slice(0, 2)
-            .toUpperCase()}
+          {initials(profile.name)}
         </span>
         <div className="flex min-w-0 flex-1 flex-col">
           <h2 id="profile-summary" className="type-h3 text-fg-default">

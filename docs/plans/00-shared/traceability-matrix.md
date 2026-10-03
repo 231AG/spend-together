@@ -16,7 +16,7 @@ Status: ☐ not started · ◐ in progress · ☑ evidenced by a passing test.
 |---|---|---|---|---|
 | FR-01 | Register; duplicates rejected non-revealingly | F6, B4 | `apps/web/e2e/auth.spec.ts` (§7.1), `auth-forms.test.tsx` (F6), `auth.register.test.ts` (enumeration) | ◐ (UI ☑) |
 | FR-02 | Login; session persists across reloads | F6, B4 | `apps/web/e2e/auth.spec.ts` (§7.2, lockout), `auth-forms.test.tsx` (F6), `auth.session.test.ts` | ◐ (UI ☑) |
-| FR-03 | Logout ends the session | F11, B4 | `auth.logout.test.ts`, `e2e/logout-clears-stores` | ☐ |
+| FR-03 | Logout ends the session | F11, B4 | `apps/web/e2e/profile.spec.ts` (logout), `components/features/profile/profile.test.tsx` (session, cache and offline stores cleared; failure clears nothing), `auth.logout.test.ts` | ◐ (UI ☑) |
 | FR-04 | Forgot/reset via email link or SMS code | F6, B4 | `apps/web/e2e/auth.spec.ts` (§7.2), `auth-forms.test.tsx` (F6), `auth.reset.test.ts` | ◐ (UI ☑) |
 | FR-05 | First-run base currency + timezone | F6, B5 | `apps/web/e2e/auth.spec.ts` (§7.1), `auth-input.test.ts`, `auth-forms.test.tsx` (F6), `me.patch.test.ts` | ◐ (UI ☑) |
 | FR-06 | Add income | F7, B5 | `apps/web/e2e/transactions.spec.ts` (§7.3), `transactions.create.test.ts` | ◐ (UI ☑) |
@@ -35,18 +35,18 @@ Status: ☐ not started · ◐ in progress · ☑ evidenced by a passing test.
 | FR-19 | Invite partner; cancel and resend | F10, B5, B7 | `apps/web/e2e/couple.spec.ts` (§7.8 two contexts, resend/cancel, declined/expired, landing states), `apps/web/mocks/rules.test.ts` (lifecycle), `couple.invite.test.ts` | ◐ (UI ☑, mock ☑) |
 | FR-20 | Couple screen: three states, no private data | F10, B2, B5 | `components/features/couple/couple.test.tsx` (three states, adversarial DOM privacy), `apps/web/e2e/couple.spec.ts`, pgTAP RLS suite | ◐ (UI ☑) |
 | FR-21 | End couple with consequences | F10, B3, B5 | `apps/web/e2e/couple.spec.ts` (§7.9 typed name, read-only goals), `couple.test.tsx` (gate), pgTAP `end_couple` | ◐ (UI ☑) |
-| FR-22 | Profile and settings | F11, B5 | `profile.test.ts`, `me.test.ts` | ☐ |
-| FR-23 | Manage custom categories | F11, B5 | `categories.crud.test.ts` (archive-not-delete) | ☐ |
+| FR-22 | Profile and settings | F11, B5 | `components/features/profile/profile.test.tsx` (live values, rename, impact dialog), `apps/web/e2e/profile.spec.ts` (W-09 grouping, §7.10, time zone), `me.test.ts` | ◐ (UI ☑) |
+| FR-23 | Manage custom categories | F11, B5 | `components/features/profile/profile.test.tsx` (defaults locked, duplicate name, archive-not-delete, restore, refused restore atomic), `apps/web/e2e/profile.spec.ts` (archived category in history), `categories.crud.test.ts` | ◐ (UI ☑, mock ☑) |
 | FR-24 | Enter any currency; show converted value first | F7, B6 | `apps/web/lib/transactions.test.ts` (preview == stored, all pairs), `conversion-preview.test.ts` | ◐ (UI ☑) |
 | FR-25 | Offline queue with sync indicator | F12 | `e2e/offline.spec.ts`, `offline-queue.test.ts` | ☐ |
-| FR-26 | Email notifications with preferences | B7 | `notifications.test.ts` (send/suppress matrix) | ☐ |
+| FR-26 | Email notifications with preferences | F11, B7 | `components/features/profile/profile.test.tsx` and `apps/web/e2e/profile.spec.ts` (exactly two switches, saved to `notify_email`), `notifications.test.ts` (send/suppress matrix) | ◐ (preferences UI ☑) |
 
 ## Web acceptance criteria (WAC-01…WAC-20)
 
 | WAC | Criterion (abbreviated) | Phase(s) | Test(s) | Status |
 |---|---|---|---|---|
 | WAC-01 | Register → currency → Home < 90 s; no disclosure | F6, B4, B8 | `apps/web/e2e/auth.spec.ts` §7.1 (timed, F6 against MSW) | ◐ (UI ☑) |
-| WAC-02 | Sessions survive reload/restart; logout clears all | F6, F11, B4, B8 | `e2e/session-persistence` | ☐ |
+| WAC-02 | Sessions survive reload/restart; logout clears all | F6, F11, B4, B8 | `apps/web/e2e/profile.spec.ts` (logout lands signed out), `components/features/profile/profile.test.tsx` (all three stores), `e2e/session-persistence` | ◐ (logout UI ☑; persistence with B4/F12) |
 | WAC-03 | Income CRUD updates all affected periods | F7, F8, B5 | `apps/web/e2e/home-insights.spec.ts` (add/delete moves Home totals), invalidation in `use-transaction-mutations.ts` | ◐ (UI ☑ against MSW; live with B5) |
 | WAC-04 | Same for expenses incl. category totals and % | F7, F8, B5 | `apps/web/e2e/home-insights.spec.ts` (expense moves totals and the Food category) | ◐ (UI ☑ against MSW; live with B5) |
 | WAC-05 | Home matches F-01…F-06 for all three periods | F2, F8, B3, B5 | `packages/domain/test/*.test.ts`, `apps/web/e2e/home-insights.spec.ts` (month vs §6.5; today/week render) | ◐ (domain ☑, UI ☑ month) |
@@ -59,7 +59,7 @@ Status: ☐ not started · ◐ in progress · ☑ evidenced by a passing test.
 | WAC-12 | Couple contributions visible with names; nothing else | F10, B2, B8 | `couple-privacy.test.ts`, pgTAP four-role suite, `e2e/couple-two-user`, `apps/web/mocks/privacy.test.ts` (F4, mock), `apps/web/e2e/goals.spec.ts` (names only on a couple goal), `components/features/couple/couple.test.tsx` (coaxed mock, nothing reaches the DOM) | ◐ (mock ☑, UI ☑; API with B2) |
 | WAC-13 | Insights correct across timezone and month boundaries | F2, F8, B3 | `packages/domain/test/*.test.ts` **T-13, T-14**, `apps/web/e2e/home-insights.spec.ts` (Sep → Aug stepping), pgTAP `spending_series` | ◐ (domain ☑, UI ☑) |
 | WAC-14 | Non-base entry stored with original; preview == saved | F7, B6 | `apps/web/lib/transactions.test.ts`, `apps/web/e2e/transactions.spec.ts` (LRD, back-dated), `packages/domain/test/*.test.ts` **T-11** | ◐ (domain ☑, UI ☑) |
-| WAC-15 | Base-currency change re-expresses, preserves originals | F11, B6 | `e2e/flows/7.10`, `recalc.test.ts` | ☐ |
+| WAC-15 | Base-currency change re-expresses, preserves originals | F11, B6 | `apps/web/e2e/profile.spec.ts` (§7.10: dialog, banner over previous values, € totals, 5,000.00 LRD kept with ≈ €), `profile.test.tsx` (goal currencies unchanged, freeze then refetch), `recalc.test.ts` | ◐ (UI ☑ against MSW) |
 | WAC-16 | Core flows on 4 desktop browsers + mobile viewports | F13, B11 | Playwright project matrix | ☐ |
 | WAC-17 | Offline expense syncs once, no duplicate | F12, B8 | `e2e/offline.spec.ts` | ☐ |
 | WAC-18 | Loading/empty/error states on every primary screen | F3–F11, F13 | `e2e/a11y.spec.ts` state sweep, `components/ui/stories.a11y.test.tsx` (F3) | ◐ (components ☑) |

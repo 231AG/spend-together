@@ -193,8 +193,10 @@ export function usePatchMe() {
       apiClient.call(endpoints.patchMe, { body }),
     onSuccess: (me, body) => {
       qc.setQueryData(queryKeys.me, me);
-      // A time-zone change moves "today", and with it every period boundary (BR-16).
-      if (body.timezone !== undefined && !me.recalculating) {
+      // A time-zone change moves "today", and with it every period boundary (BR-16). A
+      // base-currency change that finished within the request re-expresses everything
+      // now; one still running is picked up by RecalcWatcher when it ends.
+      if ((body.timezone !== undefined || body.base_currency !== undefined) && !me.recalculating) {
         void qc.invalidateQueries({ predicate: (q) => q.queryKey[0] !== 'me' });
       }
     },

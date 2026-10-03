@@ -13,7 +13,9 @@ import { pendingOfflineEntries, registerOfflineStore, signOut } from '@/lib/sess
 import { mockClock } from '@/mocks/clock';
 import { applyScenario } from '@/mocks/scenarios';
 import { db } from '@/mocks/db';
-import { call, id, useMockServer as withMockServer } from '@/mocks/test-utils';
+import { call, failure, id, useMockServer as withMockServer } from '@/mocks/test-utils';
+import { server } from '@/mocks/server';
+import { http, HttpResponse } from 'msw';
 import { CategoriesView } from './categories-view';
 import { CurrencySettings, impactFacts } from './currency-settings';
 import { LogOutButton } from './log-out-button';
@@ -134,6 +136,21 @@ describe('categories (SCR-22, FR-23, BR-17)', () => {
     expect(await within(mine).findByRole('button', { name: 'Archive Garden' })).toBeTruthy();
   });
 
+  it('a refused restore changes nothing', async () => {
+    const pets = id.category('alex-pets');
+    await call('patchCategory', { params: { id: pets }, body: { archived: true } });
+    await call('createCategory', {
+      body: { name: 'Pets', type: 'expense', icon: 'paw-print', color: 'cat-family' },
+    });
+    const error = await failure(
+      call('patchCategory', { params: { id: pets }, body: { archived: false, icon: 'plane' } }),
+    );
+    expect(error.code).toBe('CONFLICT');
+    const all = await call('listCategories', { query: { include: 'archived' } });
+    expect(all.data.find((c) => c.id === pets)).toMatchObject({ icon: 'heart-pulse' });
+    expect(all.data.find((c) => c.id === pets)?.archived_at).not.toBeNull();
+  });
+
   it('history keeps an archived category', async () => {
     render(wrap(<CategoriesView />));
     const archived = await screen.findByRole('region', { name: 'Archived' });
@@ -242,6 +259,41 @@ describe('logout (FR-03, WAC-02)', () => {
     expect(qc.getQueryCache().getAll()).toHaveLength(0);
     expect(db.sessionUserId).toBeNull();
     unregister();
+  });
+
+  it('a failed logout clears nothing (the session would still be valid)', async () => {
+    server.use(
+      http.post('*/auth/logout', () =>
+        HttpResponse.json(
+          { error: { code: 'INTERNAL', message: 'Down', request_id: 'r1' } },
+          { status: 500 },
+        ),
+      ),
+    );
+    const qc = client();
+    qc.setQueryData(queryKeys.me, { name: 'cached' });
+    const clear = vi.fn();
+    const unregister = registerOfflineStore({ pending: () => 0, clear });
+    await expect(signOut(qc)).rejects.toThrow();
+    expect(clear).not.toHaveBeenCalled();
+    expect(qc.getQueryData(queryKeys.me)).toEqual({ name: 'cached' });
+    unregister();
+  });
+
+  it('one store failing to clear still clears the others and the cache', async () => {
+    const qc = client();
+    qc.setQueryData(queryKeys.me, { name: 'cached' });
+    const clear = vi.fn();
+    const a = registerOfflineStore({
+      pending: () => 0,
+      clear: () => Promise.reject(new Error('blocked')),
+    });
+    const b = registerOfflineStore({ pending: () => 0, clear });
+    await signOut(qc);
+    expect(clear).toHaveBeenCalledOnce();
+    expect(qc.getQueryCache().getAll()).toHaveLength(0);
+    a();
+    b();
   });
 
   it('warns before discarding unsynced entries, and staying keeps them', async () => {
