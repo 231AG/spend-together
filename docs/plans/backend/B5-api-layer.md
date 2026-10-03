@@ -69,11 +69,13 @@ after a couple ends), list with contributor names and both currencies, patch and
 **WAC-09** — balance always equals the sum after any mutation; the completion trigger
 fires and reverses.
 
-**B5-07 · `CoupleService` and routes** — state, invite (creating a pending couple if
-none), accept via `accept_invitation()`, cancel, resend, decline, `DELETE /couple` via
+**B5-07 · `CoupleService` and routes** — state (reporting a declined or expired invitation
+to its inviter, ADR-014), invite (creating a pending couple if
+none), accept via `accept_invitation()`, cancel, resend (pending or expired, ADR-014), decline, `DELETE /couple` via
 `end_couple()`, and the public `GET /invitations/by-token/:token`. *Acceptance:*
 **WAC-12** — the couple state response carries the partner's **name only**; the token
-endpoint returns the inviter's **first name only** and is safe to call unauthenticated.
+endpoint returns the inviter's **first name only** (plus the invitation id, ADR-013) and is
+safe to call unauthenticated.
 
 **B5-08 · `InsightsService` and routes** — daily, weekly and monthly anchored by `?date=`,
 built on `period_summary`, `category_breakdown` and `spending_series`, with the

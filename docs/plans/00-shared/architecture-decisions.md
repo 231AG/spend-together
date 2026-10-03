@@ -299,3 +299,42 @@ endpoints. Registered in `endpoints.ts` with source `ADR-012`.
 
 **Consequences.** One more endpoint for the mock (F4 handler added in F6) and for B4
 (`B4-05` now also covers resend). No existing schema changes shape.
+
+## ADR-013 — The public invitation response carries `invitation_id`
+
+**Status:** **Accepted** 3 Oct 2026 (F10; decision log D-81)
+**Spec:** §7.8, §10.3 (`POST /couple/invitations/:id/accept` with body `{token}`), §10.4
+(`GET /invitations/by-token/:token`), SCR-20, FR-19
+
+**Context.** The invitee arrives at `/invite/[token]`, but accepting or declining needs the
+invitation's id in the path as well as the token in the body. The frozen by-token
+response (inviter first name, status, expiry) carries no id, so the landing page could
+not accept or decline at all.
+
+**Decision.** Add `invitation_id` (UUID) to `PublicInvitation`. It reveals nothing new:
+the caller already holds the token, which identifies the invitation, and accept/decline
+still require that token. The response remains free of the inviter's surname, contact
+details and any other personal data.
+
+**Consequences.** One field more on the public response for the mock (F10) and B5-07; the
+F4 privacy test now lists it as allowed. No other schema changes shape.
+
+## ADR-014 — `GET /couple` reports a declined or expired invitation to its inviter
+
+**Status:** **Accepted** 3 Oct 2026 (F10; decision log D-82)
+**Spec:** §7.8 ("Invitee declines → inviter sees 'Declined'"; "Inviter sees invitation
+expire"; "Invitation expires after 7 days → Resend available"), SCR-19, FR-19
+
+**Context.** `CoupleState.invitation` was defined as "the open invitation while pending,
+else null", so once an invitation was declined or expired the inviter's Couple screen
+had nothing to show, and an expired invitation could not be resent.
+
+**Decision.** No shape change. With status `none` or `ended`, `invitation` now carries the
+inviter's most recent invitation **if** it ended as `declined` or `expired` (and is newer
+than any ended couple); otherwise null. `POST /couple/invitations/:id/resend` accepts a
+pending **or expired** invitation and gives it a fresh 7 days. A cancelled invitation is
+never reported back — the inviter cancelled it themselves.
+
+**Consequences.** The mock (F10) and B5-07 serialise the state this way; B3's resend path
+allows expired invitations. The invitee's identity is not newly exposed: the inviter
+typed it.

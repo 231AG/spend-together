@@ -46,6 +46,11 @@ export const PRESETS: Record<string, Partial<ScenarioState>> = {
   Recalculating: { recalculating: true },
   'Signed out': { variant: 'signedOut' },
   'Not onboarded': { variant: 'notOnboarded' },
+  'Invited (Sam, signed in)': { variant: 'invitedPartner' },
+  'Invited (signed out)': { variant: 'invitedSignedOut' },
+  'Invited while coupled': { variant: 'invitedWhileCoupled' },
+  'Invitation declined': { variant: 'inviteDeclined' },
+  'Invitation expired': { variant: 'inviteExpired' },
 };
 
 let state: ScenarioState = { ...DEFAULT_SCENARIO };

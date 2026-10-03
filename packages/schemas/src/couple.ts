@@ -30,7 +30,11 @@ export const Partner = z.strictObject({
 export const CoupleState = z.strictObject({
   status: z.enum(['none', 'pending', 'active', 'ended']),
   partner: Partner.nullable(),
-  /** The open invitation while pending, else null. */
+  /**
+   * The open invitation while pending. With status `none` or `ended`, the inviter's latest
+   * invitation if it was declined or expired, so they can see that and resend (ADR-014);
+   * otherwise null.
+   */
   invitation: Invitation.nullable(),
   shared_goal_count: z.int().nonnegative(),
   ended_at: IsoTimestamp.nullable(),

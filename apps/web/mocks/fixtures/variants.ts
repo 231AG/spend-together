@@ -108,6 +108,62 @@ export const variants = {
 
   /** Signed out, for the auth screens. */
   signedOut: (): Seed => ({ ...referenceSeed(), session: null }),
+
+  /** Sam, signed in and unattached, opening Alex's pending invitation (§7.8, F10). */
+  invitedPartner: (): Seed => ({ ...variants.pendingInvite(), session: SAM }),
+
+  /** Alex's pending invitation, opened by someone who isn't signed in yet (SCR-20). */
+  invitedSignedOut: (): Seed => ({ ...variants.pendingInvite(), session: null }),
+
+  /**
+   * Sam is already connected to Alex when Jordan's invitation arrives: Sam can't accept
+   * (§7.8 "This person can't accept right now").
+   */
+  invitedWhileCoupled: (): Seed => {
+    const seed = referenceSeed();
+    const jordan = variants.empty().users.find((u) => u.key === 'jordan');
+    if (!jordan) throw new Error('jordan fixture missing');
+    return {
+      ...seed,
+      session: SAM,
+      users: [...seed.users, jordan],
+      invitations: [
+        ...seed.invitations,
+        {
+          key: 'jordan-sam',
+          inviter: 'jordan',
+          invitee: 'sam.tweh@example.com',
+          inviteeKind: 'email',
+          token: 'invite-jordan',
+          status: 'pending',
+          createdAt: '2026-09-16T18:00:00.000Z',
+          expiresAt: '2026-09-23T18:00:00.000Z',
+        },
+      ],
+    };
+  },
+
+  /** Alex's invitation was declined; Alex sees "Declined" (§7.8, ADR-014). */
+  inviteDeclined: (): Seed => {
+    const seed = variants.pendingInvite();
+    return {
+      ...seed,
+      invitations: seed.invitations.map((i) => ({ ...i, status: 'declined' as const })),
+    };
+  },
+
+  /** Alex's invitation lapsed after 7 days; Resend is offered (§7.8). */
+  inviteExpired: (): Seed => {
+    const seed = variants.pendingInvite();
+    return {
+      ...seed,
+      invitations: seed.invitations.map((i) => ({
+        ...i,
+        createdAt: '2026-09-08T18:00:00.000Z',
+        expiresAt: '2026-09-15T18:00:00.000Z',
+      })),
+    };
+  },
 } satisfies Record<string, () => Seed>;
 
 export type VariantName = keyof typeof variants;

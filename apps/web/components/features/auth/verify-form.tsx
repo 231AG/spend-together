@@ -65,7 +65,14 @@ export function VerifyForm() {
     onSuccess: async (session) => {
       clearPendingVerify();
       await queryClient.invalidateQueries({ queryKey: queryKeys.me });
-      router.replace(session.user.onboarded ? safeNext(params.get('next')) : '/setup/currency');
+      // A new account sets up its currency first, then returns to `next` (e.g. an
+      // invitation it came from, SCR-20).
+      const next = params.get('next');
+      router.replace(
+        session.user.onboarded
+          ? safeNext(next)
+          : `/setup/currency${next ? `?next=${encodeURIComponent(safeNext(next))}` : ''}`,
+      );
     },
     onError: (error) => {
       const p = authProblem(error);

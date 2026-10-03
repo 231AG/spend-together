@@ -17,6 +17,7 @@ export const queryKeys = {
   goal: (id: string) => ['goals', 'detail', id] as const,
   contributions: (goalId: string) => ['goals', 'contributions', goalId] as const,
   couple: ['couple'] as const,
+  invitation: (token: string) => ['invitation', token] as const,
   currencies: ['currencies'] as const,
   categories: (type: 'income' | 'expense' | 'all') => ['categories', type] as const,
   rates: (date: string) => ['exchange-rates', date] as const,
@@ -168,5 +169,14 @@ export function useCouple() {
     queryKey: queryKeys.couple,
     queryFn: () => apiClient.call(endpoints.getCouple, {}),
     staleTime: 60_000,
+  });
+}
+
+/** SCR-20: the public invitation (inviter first name, status, expiry). */
+export function useInvitation(token: string) {
+  return useQuery({
+    queryKey: queryKeys.invitation(token),
+    queryFn: () => apiClient.call(endpoints.getInvitationByToken, { params: { token } }),
+    retry: (count, error) => !(error instanceof ApiError && error.status === 404) && count < 2,
   });
 }
