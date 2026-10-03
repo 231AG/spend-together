@@ -4,16 +4,16 @@ import type { CoupleState, Invitation } from '@spendtogether/schemas';
 import { Clock, HeartHandshake, Lock, Mail, Phone, UserX, X } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { linkButton } from '@/components/ui/link-button';
 import { ErrorState } from '@/components/ui/error-state';
 import { FormNotice } from '@/components/ui/form-message';
 import { GoalCard } from '@/components/ui/goal-card';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { useToast } from '@/components/ui/toast';
 import { useOnline } from '@/lib/connectivity';
-import { COUPLE_PRIVACY, OFFLINE_BLOCKED, firstName } from '@/lib/couple';
-import { formatDay } from '@/lib/format-date';
+import { COUPLE_PRIVACY, OFFLINE_BLOCKED, dayOf, firstName } from '@/lib/couple';
 import { goalCardData } from '@/lib/insights';
-import { useCouple, useCurrencies, useGoals, useToday } from '@/lib/queries';
+import { useCouple, useCurrencies, useGoals, useMe, useToday } from '@/lib/queries';
 import { EndConnectionDialog } from './end-connection-dialog';
 import { InviteForm } from './invite-form';
 import { useCancelInvitation, useResendInvitation } from './use-couple-actions';
@@ -23,8 +23,7 @@ import { useCancelInvitation, useResendInvitation } from './use-couple-actions';
 // the connection, plus shared goals (BR-05): the contract has no field for anything else.
 
 const card = 'flex flex-col gap-4 rounded-xl bg-bg-card p-5 shadow-elev-1 md:p-6';
-const primaryLink =
-  'inline-flex min-h-(--touch-min) items-center justify-center rounded-md bg-action-primary-bg px-4 type-label text-action-primary-fg hover:bg-action-primary-bg-hover';
+const primaryLink = linkButton();
 
 function PrivacyNote() {
   return (
@@ -35,7 +34,11 @@ function PrivacyNote() {
   );
 }
 
-const day = (iso: string) => formatDay(iso.slice(0, 10), 'en-GB', true);
+/** Dates in the signed-in user's time zone. */
+function useDay() {
+  const tz = useMe().data?.timezone;
+  return (iso: string) => dayOf(iso, tz);
+}
 
 export function CoupleView() {
   const couple = useCouple();
@@ -56,7 +59,7 @@ export function CoupleView() {
       {!online && <FormNotice tone="offline">{OFFLINE_BLOCKED}</FormNotice>}
       {state.status === 'active' && state.partner ? (
         <Connected state={state} partnerName={state.partner.name} since={state.partner.since} />
-      ) : state.status === 'pending' && state.invitation ? (
+      ) : state.status === 'pending' ? (
         <Pending invitation={state.invitation} />
       ) : (
         <NoPartner state={state} />
@@ -66,6 +69,7 @@ export function CoupleView() {
 }
 
 function NoPartner({ state }: { state: CoupleState }) {
+  const day = useDay();
   const last = state.invitation;
   return (
     <>
@@ -109,6 +113,7 @@ function NoPartner({ state }: { state: CoupleState }) {
 
 /** ADR-014: the inviter sees a declined or expired invitation, and can resend an expired one. */
 function ClosedInvitation({ invitation }: { invitation: Invitation }) {
+  const day = useDay();
   const resend = useResendInvitation();
   const online = useOnline();
   const toast = useToast();
@@ -150,12 +155,13 @@ function ClosedInvitation({ invitation }: { invitation: Invitation }) {
   );
 }
 
-function Pending({ invitation }: { invitation: Invitation }) {
+function Pending({ invitation }: { invitation: Invitation | null }) {
+  const day = useDay();
   const resend = useResendInvitation();
   const cancel = useCancelInvitation();
   const online = useOnline();
   const toast = useToast();
-  const Icon = invitation.invitee_kind === 'email' ? Mail : Phone;
+  const Icon = invitation?.invitee_kind === 'phone' ? Phone : Mail;
   return (
     <section aria-labelledby="pending-title" className={card}>
       <span className="inline-flex items-center gap-1.5 self-start rounded-full bg-status-atrisk-bg px-2.5 py-0.5 type-caption text-status-atrisk-fg">
@@ -165,17 +171,25 @@ function Pending({ invitation }: { invitation: Invitation }) {
       <h2 id="pending-title" className="type-h2 text-fg-default">
         Waiting for your partner
       </h2>
-      <dl className="flex flex-col gap-2 type-body-lg">
-        <div className="flex items-center gap-2">
-          <dt className="sr-only">Sent to</dt>
-          <Icon aria-hidden className="size-(--icon-md) text-fg-muted" strokeWidth={1.75} />
-          <dd className="break-all text-fg-default">{invitation.invitee}</dd>
-        </div>
-        <div className="flex items-center gap-2">
-          <dt className="text-fg-muted">Expires</dt>
-          <dd className="text-fg-default">{day(invitation.expires_at)}</dd>
-        </div>
-      </dl>
+      {invitation ? (
+        <dl className="flex flex-col gap-2 type-body-lg">
+          <div className="flex items-center gap-2">
+            <dt className="sr-only">Sent to</dt>
+            <Icon aria-hidden className="size-(--icon-md) text-fg-muted" strokeWidth={1.75} />
+            <dd className="break-all text-fg-default">{invitation.invitee}</dd>
+          </div>
+          <div className="flex items-center gap-2">
+            <dt className="text-fg-muted">Expires</dt>
+            <dd className="text-fg-default">{day(invitation.expires_at)}</dd>
+          </div>
+        </dl>
+      ) : (
+        // The state is pending but the details didn't come through: say so rather than
+        // offering an invite form the server would refuse.
+        <p className="type-body-lg text-fg-body">
+          You have an open invitation. Its details couldn't be loaded.
+        </p>
+      )}
       <p className="type-body-sm text-fg-body">
         Shared goals appear here after your partner accepts.
       </p>
@@ -183,36 +197,38 @@ function Pending({ invitation }: { invitation: Invitation }) {
       {(resend.isError || cancel.isError) && (
         <FormNotice tone="error">We couldn't do that. Try again.</FormNotice>
       )}
-      <div className="flex flex-wrap gap-3">
-        <Button
-          variant="secondary"
-          loading={resend.isPending}
-          disabled={!online || cancel.isPending}
-          onClick={() => {
-            resend.mutate(invitation.id, {
-              onSuccess: () => {
-                toast({ message: 'Invitation sent again' });
-              },
-            });
-          }}
-        >
-          Resend
-        </Button>
-        <Button
-          variant="tertiary"
-          loading={cancel.isPending}
-          disabled={!online || resend.isPending}
-          onClick={() => {
-            cancel.mutate(invitation.id, {
-              onSuccess: () => {
-                toast({ message: 'Invitation cancelled. The link no longer works.' });
-              },
-            });
-          }}
-        >
-          Cancel invitation
-        </Button>
-      </div>
+      {invitation && (
+        <div className="flex flex-wrap gap-3">
+          <Button
+            variant="secondary"
+            loading={resend.isPending}
+            disabled={!online || cancel.isPending}
+            onClick={() => {
+              resend.mutate(invitation.id, {
+                onSuccess: () => {
+                  toast({ message: 'Invitation sent again' });
+                },
+              });
+            }}
+          >
+            Resend
+          </Button>
+          <Button
+            variant="tertiary"
+            loading={cancel.isPending}
+            disabled={!online || resend.isPending}
+            onClick={() => {
+              cancel.mutate(invitation.id, {
+                onSuccess: () => {
+                  toast({ message: 'Invitation cancelled. The link no longer works.' });
+                },
+              });
+            }}
+          >
+            Cancel invitation
+          </Button>
+        </div>
+      )}
     </section>
   );
 }
@@ -226,6 +242,7 @@ function Connected({
   partnerName: string;
   since: string;
 }) {
+  const day = useDay();
   const shared = useGoals('ours');
   const today = useToday();
   const { byCode } = useCurrencies();

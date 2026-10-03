@@ -167,3 +167,23 @@ test('couple load failure offers Retry', async ({ page }) => {
   });
   await expect(page.getByRole('button', { name: /Retry/ })).toBeVisible();
 });
+
+test('opening your own invitation link offers no Accept or Decline', async ({ page }) => {
+  await useScenario(page, 'pendingInvite');
+  await page.goto('/invite/invite-pending');
+  await expectPage(page, /Alex invited you/);
+  await expect(page.getByText('This is the invitation you sent.', { exact: false })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Accept' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Decline' })).toHaveCount(0);
+});
+
+test('a not-yet-onboarded sign-in keeps where it was going through currency setup', async ({
+  page,
+}) => {
+  await useScenario(page, 'notOnboarded');
+  await page.goto('/goals');
+  await expectPage(page, 'Choose your currency');
+  await expect(page).toHaveURL(/\/setup\/currency\?next=%2Fgoals$/);
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await expectPage(page, 'Goals');
+});

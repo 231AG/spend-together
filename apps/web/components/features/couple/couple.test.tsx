@@ -40,7 +40,7 @@ function coaxed(base: Record<string, unknown>) {
     partner_income: LEAKS.income,
     partner: base['partner']
       ? {
-          ...(base['partner']),
+          ...base['partner'],
           email: LEAKS.email,
           expenses: LEAKS.expenses,
           balance: LEAKS.balance,

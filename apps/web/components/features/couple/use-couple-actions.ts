@@ -8,12 +8,14 @@ import { queryKeys } from '@/lib/queries';
 // F10 actions: invite, resend, cancel, accept, decline, end. Each refreshes the couple
 // state; joining or ending a couple also changes which goals are shared (Our goals, Home).
 
-function refresh(qc: QueryClient, goalsToo = false) {
+function refresh(qc: QueryClient) {
   void qc.invalidateQueries({ queryKey: queryKeys.couple });
-  if (goalsToo) {
-    void qc.invalidateQueries({ queryKey: ['goals'] });
-    void qc.invalidateQueries({ queryKey: ['home'] });
-  }
+}
+
+/** After the response already put the new couple state in the cache: only goals move. */
+function refreshShared(qc: QueryClient) {
+  void qc.invalidateQueries({ queryKey: ['goals'] });
+  void qc.invalidateQueries({ queryKey: ['home'] });
 }
 
 export function useInvitePartner() {
@@ -54,7 +56,7 @@ export function useAcceptInvitation(token: string) {
     onSuccess: (state) => {
       qc.setQueryData(queryKeys.couple, state);
       void qc.invalidateQueries({ queryKey: queryKeys.invitation(token) });
-      refresh(qc, true);
+      refreshShared(qc);
     },
   });
 }
@@ -76,7 +78,7 @@ export function useEndCouple() {
     mutationFn: () => apiClient.call(endpoints.endCouple, {}),
     onSuccess: (state) => {
       qc.setQueryData(queryKeys.couple, state);
-      refresh(qc, true);
+      refreshShared(qc);
     },
   });
 }

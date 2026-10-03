@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useSyncExternalStore } from 'react';
+import { linkButton } from '@/components/ui/link-button';
 import { onboardingSeen } from '@/lib/auth-copy';
 import { safeNext } from '@/lib/safe-next';
 
@@ -10,10 +11,8 @@ import { safeNext } from '@/lib/safe-next';
 // (§12.1). First-time visitors see onboarding before registering (§7.1); the seen-once
 // flag skips it on return.
 
-const primary =
-  'inline-flex min-h-12 items-center justify-center rounded-md bg-action-primary-bg px-6 type-label text-action-primary-fg hover:bg-action-primary-bg-hover';
-const secondary =
-  'inline-flex min-h-12 items-center justify-center rounded-md border border-border-input bg-bg-card px-6 type-label text-fg-default hover:bg-bg-subtle';
+const primary = linkButton('primary', 'lg');
+const secondary = linkButton('secondary', 'lg');
 
 export function WelcomeActions() {
   const params = useSearchParams();

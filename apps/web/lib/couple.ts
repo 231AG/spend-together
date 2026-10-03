@@ -1,3 +1,7 @@
+import { localDate } from '@spendtogether/domain';
+import { detectTimeZone } from './auth-input';
+import { formatDay } from './format-date';
+
 // Display helpers for the couple screens (F10). Names only: nothing here can describe a
 // partner's money, because the contract carries none (BR-05).
 
@@ -30,3 +34,11 @@ export const INVITE_PRIVACY =
   "You'll share savings goals — not your income, expenses or personal goals.";
 
 export const OFFLINE_BLOCKED = 'Connect to the internet to do this.';
+
+/**
+ * An instant (expiry, connected since, ended on) as a calendar day in the viewer's time
+ * zone — never its UTC date, which can be a day off. Signed-out viewers use the device's.
+ */
+export function dayOf(iso: string, timeZone?: string): string {
+  return formatDay(localDate(new Date(iso), timeZone ?? detectTimeZone()), 'en-GB', true);
+}

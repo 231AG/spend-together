@@ -493,12 +493,13 @@ describe('invitation lifecycle (F10, ADR-013, ADR-014)', () => {
   });
 
   it('a declined invitation is reported to its inviter', async () => {
-    applyScenario({ variant: 'pendingInvite' });
+    applyScenario({ variant: 'invitedPartner' });
     const landing = await call('getInvitationByToken', { params: { token: 'invite-pending' } });
     await call('declineInvitation', {
       params: { id: landing.invitation_id },
       body: { token: 'invite-pending' },
     });
+    signInAs('alex');
     const state = await call('getCouple', {});
     expect(state.status).toBe('none');
     expect(state.invitation?.status).toBe('declined');
@@ -515,5 +516,29 @@ describe('invitation lifecycle (F10, ADR-013, ADR-014)', () => {
     await call('cancelInvitation', { params: { id: invitationId } });
     const after = await call('getCouple', {});
     expect(after).toMatchObject({ status: 'none', invitation: null });
+  });
+});
+
+describe('invitation guards (F10 self-audit)', () => {
+  useMockServer();
+
+  it('reviving an expired invitation never leaves two open (BR-06)', async () => {
+    applyScenario({ variant: 'inviteExpired' });
+    const expiredId = (await call('getCouple', {})).invitation?.id ?? '';
+    await call('invitePartner', { body: { invitee: 'jordan@example.com' } });
+    const err = await failure(call('resendInvitation', { params: { id: expiredId } }));
+    expect(err.code).toBe('CONFLICT');
+  });
+
+  it('an inviter cannot decline their own invitation', async () => {
+    applyScenario({ variant: 'pendingInvite' });
+    const landing = await call('getInvitationByToken', { params: { token: 'invite-pending' } });
+    const err = await failure(
+      call('declineInvitation', {
+        params: { id: landing.invitation_id },
+        body: { token: 'invite-pending' },
+      }),
+    );
+    expect(err.code).toBe('CONFLICT');
   });
 });

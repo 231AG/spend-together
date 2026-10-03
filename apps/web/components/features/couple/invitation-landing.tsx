@@ -6,14 +6,14 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { linkButton } from '@/components/ui/link-button';
 import { ErrorState } from '@/components/ui/error-state';
 import { FormNotice } from '@/components/ui/form-message';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { useToast } from '@/components/ui/toast';
 import { ApiError } from '@/lib/api-client';
 import { useOnline } from '@/lib/connectivity';
-import { INVITE_PRIVACY, OFFLINE_BLOCKED } from '@/lib/couple';
-import { formatDay } from '@/lib/format-date';
+import { INVITE_PRIVACY, OFFLINE_BLOCKED, dayOf } from '@/lib/couple';
 import { isUnauthenticated, useCouple, useInvitation, useMe } from '@/lib/queries';
 import { useAcceptInvitation, useDeclineInvitation } from './use-couple-actions';
 
@@ -21,10 +21,8 @@ import { useAcceptInvitation, useDeclineInvitation } from './use-couple-actions'
 // nothing else. Signed in: Accept or Decline (unless you're already connected, which is
 // explained). Signed out: Create account or Log in, returning here to accept.
 
-const primary =
-  'inline-flex min-h-12 items-center justify-center rounded-md bg-action-primary-bg px-6 type-label text-action-primary-fg hover:bg-action-primary-bg-hover';
-const secondary =
-  'inline-flex min-h-12 items-center justify-center rounded-md border border-border-input bg-bg-card px-6 type-label text-fg-default hover:bg-bg-subtle';
+const primary = linkButton('primary', 'lg');
+const secondary = linkButton('secondary', 'lg');
 
 function Shell({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -78,8 +76,7 @@ function Loaded({ token, invitation }: { token: string; invitation: PublicInvita
     return (
       <Shell title="This invitation has expired">
         <p className="type-body-lg text-fg-body">
-          It expired on {formatDay(invitation.expires_at.slice(0, 10), 'en-GB', true)}. Ask {name}{' '}
-          to resend it.
+          It expired on {dayOf(invitation.expires_at, me.data?.timezone)}. Ask {name} to resend it.
         </p>
       </Shell>
     );
@@ -155,7 +152,15 @@ function Respond({ token, invitation }: { token: string; invitation: PublicInvit
   const decline = useDeclineInvitation(token);
   const name = invitation.inviter_first_name;
 
-  if (couple.data?.status === 'active') {
+  const mine = couple.data;
+  if (mine?.status === 'pending' && mine.invitation?.id === invitation.invitation_id) {
+    return (
+      <p className="type-body-lg text-fg-body">
+        This is the invitation you sent. Your partner opens this link to accept it.
+      </p>
+    );
+  }
+  if (mine?.status === 'active') {
     return (
       <FormNotice tone="error">
         You can't accept right now: you're already connected to a partner. You can be connected to
@@ -163,26 +168,37 @@ function Respond({ token, invitation }: { token: string; invitation: PublicInvit
       </FormNotice>
     );
   }
+  // An open invitation of your own blocks accepting another (BR-06); declining still works.
+  const ownOpen = mine?.status === 'pending';
 
-  const conflict =
-    (accept.error instanceof ApiError && accept.error.code === 'CONFLICT') ||
-    (decline.error instanceof ApiError && decline.error.code === 'CONFLICT');
-  const failed = (accept.isError || decline.isError) && !conflict;
+  const acceptConflict = accept.error instanceof ApiError && accept.error.code === 'CONFLICT';
+  const declineConflict = decline.error instanceof ApiError && decline.error.code === 'CONFLICT';
+  const failed = (accept.isError && !acceptConflict) || (decline.isError && !declineConflict);
 
   return (
     <div className="flex w-full flex-col gap-3">
       {!online && <FormNotice tone="offline">{OFFLINE_BLOCKED}</FormNotice>}
-      {conflict && (
+      {ownOpen && (
         <FormNotice tone="error">
-          This person can't accept right now. This invitation can't be used.
+          You have an open invitation of your own. Cancel it on your{' '}
+          <Link href="/couple" className="underline">
+            Couple page
+          </Link>{' '}
+          to accept this one.
         </FormNotice>
       )}
+      {acceptConflict && (
+        <FormNotice tone="error">
+          This invitation can't be accepted right now. Ask {name} to send a new one.
+        </FormNotice>
+      )}
+      {declineConflict && <FormNotice tone="error">This invitation is no longer open.</FormNotice>}
       {failed && <FormNotice tone="error">We couldn't do that. Try again.</FormNotice>}
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
         <Button
           size="lg"
           loading={accept.isPending}
-          disabled={!online || decline.isPending}
+          disabled={!online || decline.isPending || ownOpen}
           onClick={() => {
             accept.mutate(invitation.invitation_id, {
               onSuccess: () => {

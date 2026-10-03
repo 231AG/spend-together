@@ -88,12 +88,17 @@ function GatedSession({ mode, children }: { mode: Exclude<Mode, 'any'>; children
   const onboarded = me.data ? me.data.onboarded_at !== null : null;
 
   let redirect: string | null = null;
+  // Not onboarded yet: currency setup first, then on to where they were going (e.g. an
+  // invitation, SCR-20), so `next` survives every route into setup.
+  const nextParam = search.get('next');
   if (mode === 'guest' && me.data) {
-    redirect = onboarded ? safeNext(search.get('next')) : '/setup/currency';
+    redirect = onboarded
+      ? safeNext(nextParam)
+      : withNext('/setup/currency', nextParam ? safeNext(nextParam) : '');
   } else if (mode !== 'guest' && signedOut) {
     redirect = withNext('/', currentPath(pathname, search));
   } else if (mode === 'app' && onboarded === false) {
-    redirect = '/setup/currency';
+    redirect = withNext('/setup/currency', currentPath(pathname, search));
   } else if (mode === 'setup' && onboarded === true) {
     redirect = safeNext(search.get('next'));
   }

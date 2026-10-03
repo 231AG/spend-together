@@ -133,3 +133,31 @@ Low uncertainty.
 Owner reviews: the full invite-and-accept flow across two browser profiles; the connected
 state showing shared goals and nothing else; the end-connection dialog; and the
 ex-partner read-only state. Then F11 may start.
+
+## 12. As built (3 Oct 2026)
+
+- **Couple** (`components/features/couple/couple-view.tsx`): no partner (privacy promise
+  before the invite form), pending (destination, expiry in your time zone, Resend,
+  Cancel), declined and expired (ADR-014, with Resend for expired), connected (first name,
+  since, shared goals preview, Create shared goal, End connection), ex-partner, loading,
+  error and offline (management disabled with "Connect to the internet to do this.").
+- **Invite form** (`invite-form.tsx`): email or phone with detection; self-invite refused;
+  any other refusal is one message.
+- **End connection** (`end-connection-dialog.tsx`): consequences, then the partner's first
+  name typed (case, spaces and accents ignored) to enable the destructive action.
+- **Landing** (`invitation-landing.tsx` at `/invite/[token]`): first name only; Accept /
+  Decline when signed in; Create account / Log in carrying `next` when signed out; invalid,
+  expired, cancelled, declined, accepted, your-own-invitation, already-coupled and
+  own-open-invitation states.
+- **Contract:** ADR-013 (`invitation_id` on the public response), ADR-014 (declined or
+  expired invitation reported to its inviter; resend after expiry). Mock, privacy test,
+  schema test and B5-07 updated.
+- **Self-audit** (high-effort review before merge): ten findings, all fixed — BR-06 on
+  resend, `next` through the session gate, self-decline, precise conflict copy, time-zone
+  dates, pending without details, no redundant refetch, shared link styles, simpler status
+  check, shared `firstName` in the mock (D-84…D-86).
+- **Tests:** `couple.test.tsx` (three states, adversarial DOM privacy with a coaxed mock,
+  landing first-name only, end gate), `lib/couple.test.ts`, `mocks/rules.test.ts`
+  (lifecycle and guards), `e2e/couple.spec.ts` (§7.8 in two contexts, resend/cancel,
+  declined/expired, signed-out return, invalid/coupled/declined landing, own link, §7.9,
+  offline, error, onboarding keeps `next`) at 360 / 768 / 1280 px.

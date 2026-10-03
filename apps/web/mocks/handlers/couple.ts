@@ -1,3 +1,4 @@
+import { firstName } from '@/lib/couple';
 import { mockClock } from '../clock';
 import { db, type InvitationRecord, type UserRecord } from '../db';
 import { ApiFailure, invalid, notFound } from '../errors';
@@ -88,19 +89,28 @@ export const coupleHandlers = [
   }),
 
   // §7.8: "Invitation expires after 7 days → Resend available" — a pending or expired
-  // invitation gets a fresh 7 days; nothing else can be resent.
+  // invitation gets a fresh 7 days; nothing else can be resent, and reviving an expired
+  // one must not leave two open invitations (BR-06).
   route('resendInvitation', ({ user, params }) => {
     const i = ownInvitation(user, params.id);
-    if (!['pending', 'expired'].includes(invitation(db, i).status)) assertOpen(i);
-    if (db.activeCoupleOf(user.id)) throw new ApiFailure('CONFLICT', 'You already have a partner.');
+    const status = invitation(db, i).status;
+    if (status !== 'pending' && status !== 'expired') {
+      throw new ApiFailure('CONFLICT', 'This invitation is no longer open.');
+    }
+    const other = pendingOf(user);
+    if (db.activeCoupleOf(user.id) || (other && other.id !== i.id)) {
+      throw new ApiFailure('CONFLICT', 'You already have a partner or an open invitation.');
+    }
     i.status = 'pending';
     i.expiresAt = new Date(mockClock.now().getTime() + INVITE_DAYS * 86_400_000).toISOString();
     return invitation(db, i);
   }),
 
-  route('declineInvitation', ({ params, body }) => {
+  route('declineInvitation', ({ user, params, body }) => {
     const i = invitationByToken(params.id, body.token);
     assertOpen(i);
+    if (i.inviterId === user.id)
+      throw new ApiFailure('CONFLICT', "You can't decline your own invitation.");
     i.status = 'declined';
     return invitation(db, i);
   }),
@@ -123,7 +133,7 @@ export const coupleHandlers = [
     const wire = invitation(db, i);
     return {
       invitation_id: i.id,
-      inviter_first_name: inviter.name.split(' ')[0] ?? inviter.name,
+      inviter_first_name: firstName(inviter.name),
       status: wire.status,
       expires_at: wire.expires_at,
     };

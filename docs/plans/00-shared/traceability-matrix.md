@@ -32,9 +32,9 @@ Status: ☐ not started · ◐ in progress · ☑ evidenced by a passing test.
 | FR-16 | Goal details: pace, status, projection, breakdown | F9, B5 | `apps/web/e2e/goals.spec.ts` (W-06), `apps/web/lib/goals.test.ts` (every status sentence), `domain/goal.test.ts` | ◐ (UI ☑) |
 | FR-17 | Goal auto-completes at target | F9, B3 | `apps/web/e2e/goals.spec.ts` (dialog and full page, reduced motion, no repeat), `components/features/goals/goals.test.tsx`, pgTAP `sync_goal_completion` | ◐ (UI ☑) |
 | FR-18 | Edit goal name/target/date; delete | F9, B5 | `apps/web/e2e/goals.spec.ts` (no currency control), `components/features/goals/goals.test.tsx`, `goals.patch.test.ts` | ◐ (UI ☑) |
-| FR-19 | Invite partner; cancel and resend | F10, B5, B7 | `e2e/flows/7.8`, `couple.invite.test.ts` | ☐ |
-| FR-20 | Couple screen: three states, no private data | F10, B2, B5 | `couple-privacy.test.ts`, pgTAP RLS suite | ☐ |
-| FR-21 | End couple with consequences | F10, B3, B5 | `e2e/flows/7.9`, pgTAP `end_couple` | ☐ |
+| FR-19 | Invite partner; cancel and resend | F10, B5, B7 | `apps/web/e2e/couple.spec.ts` (§7.8 two contexts, resend/cancel, declined/expired, landing states), `apps/web/mocks/rules.test.ts` (lifecycle), `couple.invite.test.ts` | ◐ (UI ☑, mock ☑) |
+| FR-20 | Couple screen: three states, no private data | F10, B2, B5 | `components/features/couple/couple.test.tsx` (three states, adversarial DOM privacy), `apps/web/e2e/couple.spec.ts`, pgTAP RLS suite | ◐ (UI ☑) |
+| FR-21 | End couple with consequences | F10, B3, B5 | `apps/web/e2e/couple.spec.ts` (§7.9 typed name, read-only goals), `couple.test.tsx` (gate), pgTAP `end_couple` | ◐ (UI ☑) |
 | FR-22 | Profile and settings | F11, B5 | `profile.test.ts`, `me.test.ts` | ☐ |
 | FR-23 | Manage custom categories | F11, B5 | `categories.crud.test.ts` (archive-not-delete) | ☐ |
 | FR-24 | Enter any currency; show converted value first | F7, B6 | `apps/web/lib/transactions.test.ts` (preview == stored, all pairs), `conversion-preview.test.ts` | ◐ (UI ☑) |
@@ -56,7 +56,7 @@ Status: ☐ not started · ◐ in progress · ☑ evidenced by a passing test.
 | WAC-09 | Balance always equals sum of contributions | F2, B3, B5 | `packages/domain/test/*.test.ts`, `components/features/goals/goals.test.tsx` (after save), `apps/web/e2e/goals.spec.ts` (after delete), pgTAP `goal_balances` | ◐ (domain ☑, UI ☑) |
 | WAC-10 | Progress/remaining/pace/status/projection match F-11…F-20 | F2, F9, B5 | `packages/domain/test/*.test.ts` **T-04…T-10**, `apps/web/e2e/goals.spec.ts` (W-06 $5.71/$40.00/$173.93) | ◐ (domain ☑, UI ☑) |
 | WAC-11 | Completion immediate and reversible | F9, B3 | `apps/web/e2e/goals.spec.ts` (complete, then delete un-completes), pgTAP trigger (both directions) | ◐ (UI ☑) |
-| WAC-12 | Couple contributions visible with names; nothing else | F10, B2, B8 | `couple-privacy.test.ts`, pgTAP four-role suite, `e2e/couple-two-user`, `apps/web/mocks/privacy.test.ts` (F4, mock), `apps/web/e2e/goals.spec.ts` (names only on a couple goal) | ◐ (mock ☑, goal UI ☑) |
+| WAC-12 | Couple contributions visible with names; nothing else | F10, B2, B8 | `couple-privacy.test.ts`, pgTAP four-role suite, `e2e/couple-two-user`, `apps/web/mocks/privacy.test.ts` (F4, mock), `apps/web/e2e/goals.spec.ts` (names only on a couple goal), `components/features/couple/couple.test.tsx` (coaxed mock, nothing reaches the DOM) | ◐ (mock ☑, UI ☑; API with B2) |
 | WAC-13 | Insights correct across timezone and month boundaries | F2, F8, B3 | `packages/domain/test/*.test.ts` **T-13, T-14**, `apps/web/e2e/home-insights.spec.ts` (Sep → Aug stepping), pgTAP `spending_series` | ◐ (domain ☑, UI ☑) |
 | WAC-14 | Non-base entry stored with original; preview == saved | F7, B6 | `apps/web/lib/transactions.test.ts`, `apps/web/e2e/transactions.spec.ts` (LRD, back-dated), `packages/domain/test/*.test.ts` **T-11** | ◐ (domain ☑, UI ☑) |
 | WAC-15 | Base-currency change re-expresses, preserves originals | F11, B6 | `e2e/flows/7.10`, `recalc.test.ts` | ☐ |
