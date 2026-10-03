@@ -87,9 +87,13 @@ export const coupleHandlers = [
     return invitation(db, i);
   }),
 
+  // §7.8: "Invitation expires after 7 days → Resend available" — a pending or expired
+  // invitation gets a fresh 7 days; nothing else can be resent.
   route('resendInvitation', ({ user, params }) => {
     const i = ownInvitation(user, params.id);
-    assertOpen(i);
+    if (!['pending', 'expired'].includes(invitation(db, i).status)) assertOpen(i);
+    if (db.activeCoupleOf(user.id)) throw new ApiFailure('CONFLICT', 'You already have a partner.');
+    i.status = 'pending';
     i.expiresAt = new Date(mockClock.now().getTime() + INVITE_DAYS * 86_400_000).toISOString();
     return invitation(db, i);
   }),
@@ -118,6 +122,7 @@ export const coupleHandlers = [
     const inviter = db.user(i.inviterId);
     const wire = invitation(db, i);
     return {
+      invitation_id: i.id,
       inviter_first_name: inviter.name.split(' ')[0] ?? inviter.name,
       status: wire.status,
       expires_at: wire.expires_at,

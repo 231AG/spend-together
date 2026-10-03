@@ -120,7 +120,12 @@ describe('BR-05 privacy sweep', () => {
     applyScenario({ variant: 'pendingInvite' });
     db.sessionUserId = null;
     const landing = await call('getInvitationByToken', { params: { token: 'invite-pending' } });
-    expect(Object.keys(landing).sort()).toEqual(['expires_at', 'inviter_first_name', 'status']);
+    expect(Object.keys(landing).sort()).toEqual([
+      'expires_at',
+      'invitation_id',
+      'inviter_first_name',
+      'status',
+    ]);
     expect(landing.inviter_first_name).toBe('Alex');
   });
 

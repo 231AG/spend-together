@@ -268,15 +268,23 @@ export function coupleState(db: MockDb, viewer: UserRecord): CoupleState {
   const ended = db.couples
     .filter((c) => c.memberIds.includes(viewer.id) && c.endedAt !== null)
     .sort((a, b) => ((a.endedAt ?? '') < (b.endedAt ?? '') ? 1 : -1))[0];
+  // ADR-014: the inviter's latest invitation that was declined or expired (newer than any
+  // ended couple), so they see "Declined" or "Expired" and can invite or resend again.
+  const closed = db.invitations
+    .filter((i) => i.inviterId === viewer.id && i.createdAt > (ended?.endedAt ?? ''))
+    .map((i) => invitation(db, i))
+    .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))[0];
+  const last =
+    closed && (closed.status === 'declined' || closed.status === 'expired') ? closed : null;
   if (ended) {
     const partner = db.user(db.partnerId(ended, viewer.id));
     return {
       status: 'ended',
       partner: { name: partner.name, since: ended.since },
-      invitation: null,
+      invitation: last,
       shared_goal_count: sharedGoals(ended.id),
       ended_at: ended.endedAt,
     };
   }
-  return { status: 'none', partner: null, invitation: null, shared_goal_count: 0, ended_at: null };
+  return { status: 'none', partner: null, invitation: last, shared_goal_count: 0, ended_at: null };
 }

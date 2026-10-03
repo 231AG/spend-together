@@ -477,3 +477,43 @@ describe('scenarios (F4-10)', () => {
     expect((await call('getMe', {})).base_currency).toBe('USD');
   });
 });
+
+describe('invitation lifecycle (F10, ADR-013, ADR-014)', () => {
+  useMockServer();
+
+  it('the invitee accepts with the id from the public landing', async () => {
+    applyScenario({ variant: 'invitedPartner' });
+    const landing = await call('getInvitationByToken', { params: { token: 'invite-pending' } });
+    const state = await call('acceptInvitation', {
+      params: { id: landing.invitation_id },
+      body: { token: 'invite-pending' },
+    });
+    expect(state.status).toBe('active');
+    expect(state.partner?.name).toBe('Alex Kamara');
+  });
+
+  it('a declined invitation is reported to its inviter', async () => {
+    applyScenario({ variant: 'pendingInvite' });
+    const landing = await call('getInvitationByToken', { params: { token: 'invite-pending' } });
+    await call('declineInvitation', {
+      params: { id: landing.invitation_id },
+      body: { token: 'invite-pending' },
+    });
+    const state = await call('getCouple', {});
+    expect(state.status).toBe('none');
+    expect(state.invitation?.status).toBe('declined');
+  });
+
+  it('an expired invitation is reported and can be resent; a cancelled one is not shown', async () => {
+    applyScenario({ variant: 'inviteExpired' });
+    const before = await call('getCouple', {});
+    expect(before.invitation?.status).toBe('expired');
+    const invitationId = before.invitation?.id ?? '';
+    const resent = await call('resendInvitation', { params: { id: invitationId } });
+    expect(resent.status).toBe('pending');
+    expect((await call('getCouple', {})).status).toBe('pending');
+    await call('cancelInvitation', { params: { id: invitationId } });
+    const after = await call('getCouple', {});
+    expect(after).toMatchObject({ status: 'none', invitation: null });
+  });
+});

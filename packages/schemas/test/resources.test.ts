@@ -125,14 +125,16 @@ describe('couple privacy (BR-05 by type)', () => {
     },
   );
 
-  it('the public invitation exposes the first name and nothing else', () => {
+  it('the public invitation exposes the first name and nothing else (plus its id, ADR-013)', () => {
     const inv = {
+      invitation_id: '00000000-0000-4000-8000-000000000001',
       inviter_first_name: 'Alex',
       status: 'pending',
       expires_at: '2026-09-24T00:00:00Z',
     };
     expect(PublicInvitation.parse(inv)).toEqual(inv);
     expect(PublicInvitation.safeParse({ ...inv, inviter_email: 'a@b.co' }).success).toBe(false);
+    expect(PublicInvitation.safeParse({ ...inv, inviter_name: 'Alex Kamara' }).success).toBe(false);
   });
 });
 

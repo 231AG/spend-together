@@ -3,7 +3,7 @@
 import { endpoints } from '@spendtogether/schemas';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, Search } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useId, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { FormNotice } from '@/components/ui/form-message';
@@ -14,6 +14,7 @@ import { allTimeZones, currencyForLocale, detectTimeZone } from '@/lib/auth-inpu
 import { cn } from '@/lib/cn';
 import { useOnline } from '@/lib/connectivity';
 import { queryKeys } from '@/lib/queries';
+import { safeNext } from '@/lib/safe-next';
 
 // SCR-07 Currency setup (FR-05). A searchable list (code and name) pre-selected from the
 // browser locale, the detected time zone with Change, and Continue → PATCH /me → /home.
@@ -21,6 +22,7 @@ import { queryKeys } from '@/lib/queries';
 
 export function CurrencySetup() {
   const router = useRouter();
+  const params = useSearchParams();
   const queryClient = useQueryClient();
   const online = useOnline();
   const currencies = useQuery({
@@ -54,7 +56,7 @@ export function CurrencySetup() {
       }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.me });
-      router.replace('/home');
+      router.replace(safeNext(params.get('next')));
     },
     onError: (error) => {
       const p = authProblem(error);
