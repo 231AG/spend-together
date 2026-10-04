@@ -118,10 +118,13 @@ function GatedSession({ mode, children }: { mode: Exclude<Mode, 'any'>; children
     // Guests see the page as soon as we know there is no session (or can't tell). A later
     // refetch (on reconnect) puts a data-less query back to pending; the form must stay
     // mounted then, or what the person typed is lost.
-    return me.isPending && me.errorUpdatedAt === 0 ? <Splash /> : children;
+    // Offline with no saved session the request waits for the network: show the page
+    // (its forms say they need a connection) rather than a splash that never ends.
+    const paused = me.fetchStatus === 'paused';
+    return me.isPending && me.errorUpdatedAt === 0 && !paused ? <Splash /> : children;
   }
-  if (me.isPending) return <Splash />;
-  if (me.isError) {
+  if (me.isPending && me.fetchStatus !== 'paused') return <Splash />;
+  if (me.isPending || me.isError) {
     return (
       <Unreachable
         onRetry={() => {

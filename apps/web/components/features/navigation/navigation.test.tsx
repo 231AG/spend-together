@@ -4,6 +4,7 @@ import { render, screen, within } from '@testing-library/react';
 import axe from 'axe-core';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ToastProvider } from '@/components/ui/toast';
 import { AddSheetProvider } from '../add-sheet';
 import { NAV_ITEMS, isCurrent } from './nav-items';
 import { BottomTabBar, IconRail, Sidebar, initials } from './navigation';
@@ -22,7 +23,9 @@ function wrap(node: ReactNode) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, enabled: false } } });
   return (
     <QueryClientProvider client={client}>
-      <AddSheetProvider>{node}</AddSheetProvider>
+      <ToastProvider>
+        <AddSheetProvider>{node}</AddSheetProvider>
+      </ToastProvider>
     </QueryClientProvider>
   );
 }

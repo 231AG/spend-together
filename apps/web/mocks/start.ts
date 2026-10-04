@@ -1,6 +1,7 @@
 import { setAppClock } from '@/lib/clock';
 import { announceMockConnectivity } from '@/lib/connectivity';
-import { worker } from './browser';
+import { setApiTransport } from '@/lib/api-client';
+import { mockFetch } from './in-page';
 import { mockClock } from './clock';
 import { restoreScenario } from './persist';
 import { scenario } from './scenarios';
@@ -8,19 +9,16 @@ import { scenario } from './scenarios';
 let started: Promise<void> | null = null;
 
 /**
- * Start the MSW worker before the app's first request (NEXT_PUBLIC_API_MODE=mock).
- * Idempotent: React runs effects twice in development, and MSW refuses a second start.
+ * Start the in-page mock API before the app's first request (NEXT_PUBLIC_API_MODE=mock).
+ * Idempotent: React runs effects twice in development.
  */
 export function startMockWorker(): Promise<void> {
-  started ??= (async () => {
+  if (!started) {
     restoreScenario();
     setAppClock(mockClock);
     announceMockConnectivity(scenario().offline);
-    await worker.start({
-      onUnhandledRequest: 'bypass',
-      quiet: true,
-      serviceWorker: { url: '/mockServiceWorker.js' },
-    });
-  })();
+    setApiTransport(mockFetch);
+    started = Promise.resolve();
+  }
   return started;
 }

@@ -4,8 +4,8 @@ import { RefreshCw } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { SiteFooter } from '@/components/ui/fx-attribution';
-import { OfflineSyncIndicator } from '@/components/ui/offline-sync-indicator';
 import { AddButton, AddSheetProvider } from '@/components/features/add-sheet';
+import { SyncIndicator, SyncQueueProvider } from '@/components/features/offline/sync-queue';
 import {
   Brand,
   BottomTabBar,
@@ -13,7 +13,6 @@ import {
   Sidebar,
 } from '@/components/features/navigation/navigation';
 import { ShortcutLayer } from '@/components/features/shortcuts/shortcut-layer';
-import { useOnline } from '@/lib/connectivity';
 import { useMe } from '@/lib/queries';
 import { ConfirmProvider } from './confirm';
 import { RouteFocus } from './route-focus';
@@ -94,7 +93,6 @@ export function RecalcWatcher() {
 }
 
 function ShellHeader() {
-  const online = useOnline();
   return (
     <header className="relative flex h-(--header) items-center gap-3">
       <span className="md:hidden">
@@ -102,7 +100,7 @@ function ShellHeader() {
       </span>
       {/* The chip lives in a reserved slot at the end, so it never moves other content. */}
       <div className="ml-auto flex items-center gap-2">
-        <OfflineSyncIndicator online={online} pendingCount={0} />
+        <SyncIndicator />
       </div>
       <RecalculatingBanner />
       <RecalcWatcher />
@@ -113,27 +111,30 @@ function ShellHeader() {
 export function AppShell({ children, modal }: { children: ReactNode; modal: ReactNode }) {
   return (
     <AddSheetProvider>
-      <ConfirmProvider>
-        <SkipLink />
-        <BottomTabBar />
-        <IconRail />
-        <Sidebar />
-        <div className="min-h-dvh pb-(--mobile-content-bottom) md:pb-12 md:pl-(--rail) lg:pl-(--sidebar)">
-          <div className="mx-auto w-full max-w-(--content-max) px-4 md:px-6 lg:px-8">
-            <ShellHeader />
-            <main id="content" tabIndex={-1} className="focus:outline-none">
-              {children}
-            </main>
-            <SiteFooter className="mt-12" />
+      <SyncQueueProvider>
+        <ConfirmProvider>
+          <SkipLink />
+          <BottomTabBar />
+          <IconRail />
+          <Sidebar />
+          {/* Standalone with viewport-fit=cover: keep clear of the notch and rounded corners. */}
+          <div className="min-h-dvh pt-[env(safe-area-inset-top)] pr-[env(safe-area-inset-right)] pb-(--mobile-content-bottom) pl-[env(safe-area-inset-left)] md:pb-12 md:pl-(--rail) lg:pl-(--sidebar)">
+            <div className="mx-auto w-full max-w-(--content-max) px-4 md:px-6 lg:px-8">
+              <ShellHeader />
+              <main id="content" tabIndex={-1} className="focus:outline-none">
+                {children}
+              </main>
+              <SiteFooter className="mt-12" />
+            </div>
           </div>
-        </div>
-        <span className="md:hidden">
-          <AddButton variant="fab" />
-        </span>
-        {modal}
-        <RouteFocus />
-        <ShortcutLayer />
-      </ConfirmProvider>
+          <span className="md:hidden">
+            <AddButton variant="fab" />
+          </span>
+          {modal}
+          <RouteFocus />
+          <ShortcutLayer />
+        </ConfirmProvider>
+      </SyncQueueProvider>
     </AddSheetProvider>
   );
 }

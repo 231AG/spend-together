@@ -103,16 +103,9 @@ export const SyncIndicator: Story = {
   render: () => (
     <div className="flex flex-wrap gap-3">
       <OfflineSyncIndicator online={false} pendingCount={0} />
-      <OfflineSyncIndicator
-        online={false}
-        pendingCount={2}
-        pendingItems={['Expense · Food · $12.00', 'Contribution · New Laptop · $50.00']}
-      />
-      <OfflineSyncIndicator
-        online
-        pendingCount={1}
-        pendingItems={['Expense · Transport · $5.00']}
-      />
+      <OfflineSyncIndicator online={false} pendingCount={2} />
+      <OfflineSyncIndicator online pendingCount={1} />
+      <OfflineSyncIndicator online pendingCount={0} attentionCount={1} />
     </div>
   ),
 };

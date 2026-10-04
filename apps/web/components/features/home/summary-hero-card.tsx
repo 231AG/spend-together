@@ -15,10 +15,13 @@ export function SummaryHeroCard({
   summary,
   period,
   money,
+  pendingNote,
 }: {
   summary: HomeSummaryResponse;
   period: HomePeriod;
   money: (amountMinor: number) => MoneyDisplay;
+  /** §19.2: queued entries applied locally to these figures. */
+  pendingNote?: string;
 }) {
   const { totals, currency } = summary;
   const overspent = totals.remaining < 0;
@@ -47,6 +50,7 @@ export function SummaryHeroCard({
           Net cash flow {formatMoney(money(totals.net))} · after {formatMoney(money(totals.saved))}{' '}
           saved
         </p>
+        {pendingNote && <p className="type-body-sm text-fg-muted">{pendingNote}</p>}
       </div>
       <ul className="grid grid-cols-2 gap-x-4 gap-y-5 md:grid-cols-4">
         <li>

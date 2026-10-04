@@ -65,7 +65,7 @@ export interface ApiClientOptions {
 
 export interface ApiClient {
   readonly mode: ApiMode;
-  /** True when the MSW worker must be started before the first request. */
+  /** True when the in-page mock API must be started before the first request. */
   readonly usesMockWorker: boolean;
   url(path: string): string;
   call<E extends Endpoint>(endpoint: E, input: CallInput<E>): Promise<CallOutput<E>>;
@@ -161,7 +161,15 @@ async function readJson(res: Response, name: string): Promise<unknown> {
   }
 }
 
+let transport: typeof globalThis.fetch | null = null;
+
+/** Mock mode: answer the app's calls in the page (mocks/in-page.ts) once it has started. */
+export function setApiTransport(fetchImpl: typeof globalThis.fetch | null): void {
+  transport = fetchImpl;
+}
+
 export const apiClient = createApiClient({
   mode: env.NEXT_PUBLIC_API_MODE,
   baseUrl: env.NEXT_PUBLIC_API_BASE_URL,
+  fetch: (input, init) => (transport ?? globalThis.fetch)(input, init),
 });

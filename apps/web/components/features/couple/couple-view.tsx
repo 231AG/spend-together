@@ -1,5 +1,7 @@
 'use client';
 
+import { NotSavedOffline, waitingForNetwork } from '@/components/features/offline/offline-states';
+
 import type { CoupleState, Invitation } from '@spendtogether/schemas';
 import { Clock, HeartHandshake, Lock, Mail, Phone, UserX, X } from 'lucide-react';
 import Link from 'next/link';
@@ -43,6 +45,7 @@ function useDay() {
 export function CoupleView() {
   const couple = useCouple();
   const online = useOnline();
+  if (waitingForNetwork(couple)) return <NotSavedOffline what="Your connection" />;
   if (couple.isPending) return <LoadingSkeleton shape="card" label="Loading your connection" />;
   if (couple.isError) {
     return (

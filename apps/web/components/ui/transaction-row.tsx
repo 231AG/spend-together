@@ -62,7 +62,8 @@ export function accessibleRowName(row: TransactionRowData, baseCurrency: string,
   if (row.note) parts.push(row.note);
   if (row.byName) parts.push(`by ${row.byName}`);
   parts.push(formatDay(row.date, locale));
-  if (row.pending) parts.push('sync pending');
+  if (row.pending)
+    parts.push(row.base ? 'sync pending, converted amount estimated' : 'sync pending');
   return parts.join(', ');
 }
 
@@ -105,6 +106,7 @@ export function TransactionRow({
           kind={kind.tone}
           {...(row.base ? { base: row.base } : {})}
           {...(row.estimated ? { estimated: true } : {})}
+          {...(row.pending ? { provisional: true } : {})}
         />
         <TypeIcon className={cn('mt-0.5 size-(--icon-sm)', kind.iconClass)} strokeWidth={2} />
       </span>

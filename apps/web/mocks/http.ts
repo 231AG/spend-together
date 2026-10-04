@@ -71,6 +71,25 @@ function parse(schema: z.ZodType | undefined, value: unknown): unknown {
 /** The scope idempotency keys are remembered under: one user, one endpoint. */
 export const idempotencyScope = (name: EndpointName, userId: string) => `${userId}:${name}`;
 
+/** WAC-17: the scenario's next N answers to idempotent writes are lost in transit. */
+function loseResponse(endpoint: Endpoint): boolean {
+  const s = scenario();
+  if (!endpoint.idempotent || s.lostResponses <= 0) return false;
+  s.lostResponses -= 1;
+  return true;
+}
+
+/** §19.3 point 5: a permanent refusal, as when a goal was archived on another device. */
+function rejection(name: EndpointName): ApiFailure {
+  const message =
+    name === 'createContribution'
+      ? 'This goal was archived, so it no longer takes contributions.'
+      : name === 'createTransaction'
+        ? "That category was archived, so this entry can't be saved with it."
+        : "This can't be saved any more.";
+  return new ApiFailure('CONFLICT', message);
+}
+
 export function route<N extends EndpointName>(name: N, resolve: Resolver<(typeof endpoints)[N]>) {
   const endpoint: Endpoint = endpoints[name];
   const path = `*/api/v1${endpoint.path}`;
@@ -114,7 +133,11 @@ export function route<N extends EndpointName>(name: N, resolve: Resolver<(typeof
       const key = endpoint.idempotent ? request.headers.get('idempotency-key') : null;
       const scope = idempotencyScope(name, user?.id ?? 'anonymous');
       const hit = db.replay(scope, key);
-      if (hit) return HttpResponse.json(hit.body as JsonBodyType, { status: hit.status });
+      if (hit) {
+        if (loseResponse(endpoint)) return HttpResponse.error();
+        return HttpResponse.json(hit.body as JsonBodyType, { status: hit.status });
+      }
+      if (s.rejecting.includes(name)) throw rejection(name);
 
       const result = resolve(ctx);
       const reply = result instanceof Reply ? result : new Reply(result);
@@ -126,6 +149,8 @@ export function route<N extends EndpointName>(name: N, resolve: Resolver<(typeof
         throw new Error(`Mock ${name} broke the contract: ${checked.error.message}`);
       }
       db.remember(scope, key, status, checked.data);
+      // Committed, but the answer never arrives: the client must retry with the same key.
+      if (loseResponse(endpoint)) return HttpResponse.error();
       return HttpResponse.json(checked.data as JsonBodyType, {
         status,
         headers: reply.headers ?? {},

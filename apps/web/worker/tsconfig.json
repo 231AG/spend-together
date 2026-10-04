@@ -1,0 +1,10 @@
+{
+  "extends": "@spendtogether/config/typescript/base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "WebWorker"],
+    "noEmit": true,
+    "types": [],
+    "skipLibCheck": true
+  },
+  "include": ["sw.ts", "../lib/sw-messages.ts"]
+}

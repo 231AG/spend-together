@@ -7,6 +7,10 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { GoalCard } from '@/components/ui/goal-card';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
+import { Button } from '@/components/ui/button';
+import { NotSavedOffline, waitingForNetwork } from '@/components/features/offline/offline-states';
+import { useOnline } from '@/lib/connectivity';
+import { OFFLINE_BLOCKED } from '@/lib/couple';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { goalCardData } from '@/lib/insights';
 import { useCouple, useCurrencies, useGoals, useToday } from '@/lib/queries';
@@ -27,7 +31,19 @@ export function GoalsView() {
   const today = useToday();
   const { byCode } = useCurrencies();
   const connected = couple.data?.status === 'active';
+  const online = useOnline();
   const createHref = tab === 'ours' ? '/goals/new?type=couple' : '/goals/new';
+  // §19.2 Goals offline: the cached list stays; creating needs a connection (§19.1).
+  const createAction = (href: string, label: string) =>
+    online ? (
+      <Link href={href} className={primaryLink}>
+        {label}
+      </Link>
+    ) : (
+      <Button disabled aria-label={`${label}. ${OFFLINE_BLOCKED}`} title={OFFLINE_BLOCKED}>
+        {label}
+      </Button>
+    );
 
   const header = (
     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -40,16 +56,15 @@ export function GoalsView() {
           { value: 'ours', label: 'Our goals' },
         ]}
       />
-      {(tab === 'mine' || connected) && (
-        <Link href={createHref} className={primaryLink}>
-          {tab === 'ours' ? 'Create shared goal' : 'Create goal'}
-        </Link>
-      )}
+      {(tab === 'mine' || connected) &&
+        createAction(createHref, tab === 'ours' ? 'Create shared goal' : 'Create goal')}
     </div>
   );
 
   let body;
-  if (goals.isPending || (tab === 'ours' && couple.isPending)) {
+  if (waitingForNetwork(goals)) {
+    body = <NotSavedOffline what="Your goals list" />;
+  } else if (goals.isPending || (tab === 'ours' && couple.isPending)) {
     body = <LoadingSkeleton shape="goal-card" count={3} label="Loading goals" />;
   } else if (goals.isError) {
     body = (
@@ -73,21 +88,13 @@ export function GoalsView() {
           <EmptyState
             title="You have no savings goals yet"
             body={'A goal turns "I should save" into a number and a date.'}
-            action={
-              <Link href="/goals/new" className={primaryLink}>
-                Create goal
-              </Link>
-            }
+            action={createAction('/goals/new', 'Create goal')}
           />
         ) : connected ? (
           <EmptyState
             title="No shared goals yet"
             body={`You and ${couple.data?.partner?.name ?? 'your partner'} can save toward something together.`}
-            action={
-              <Link href="/goals/new?type=couple" className={primaryLink}>
-                Create shared goal
-              </Link>
-            }
+            action={createAction('/goals/new?type=couple', 'Create shared goal')}
           />
         ) : (
           <EmptyState

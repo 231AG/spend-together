@@ -7,11 +7,20 @@ import { Button } from '@/components/ui/button';
 import { Dialog } from '@/components/ui/dialog';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { cn } from '@/lib/cn';
-import { useActiveGoals } from '@/lib/queries';
+import { useOnline } from '@/lib/connectivity';
+import { SAVED_OFFLINE } from '@/lib/offline-entry';
+import { useActiveGoals, useGoal } from '@/lib/queries';
+import { useToast } from '@/components/ui/toast';
+import { ContributionForm } from './goals/contribution-form';
+import { NotSavedOffline } from './offline/offline-states';
+import { TransactionForm } from './transactions/transaction-form';
 
 // SCR-09 Add sheet: Income, Expense, Savings contribution, each with its one-line
 // explanation. Savings asks which goal first (§12.2), then opens the contribution form.
 // Reachable from every main destination via the FAB, rail "+", sidebar Add and `N`.
+// Online each choice is a route (shareable, Back closes it). Offline the forms open right
+// here instead: a route change needs the server, and creating offline is the one thing
+// that must keep working (§19.1, F12-05).
 
 interface AddSheetContext {
   openAdd: () => void;
@@ -89,7 +98,19 @@ function Row({
   );
 }
 
-function GoalStep({ onDone }: { onDone: () => void }) {
+type Step =
+  | { kind: 'choose' }
+  | { kind: 'goal' }
+  | { kind: 'transaction'; type: 'income' | 'expense' }
+  | { kind: 'contribution'; goalId: string; name: string };
+
+function GoalStep({
+  onDone,
+  onPick,
+}: {
+  onDone: () => void;
+  onPick?: (goalId: string, name: string) => void;
+}) {
   const goals = useActiveGoals(true);
   if (goals.isPending) return <LoadingSkeleton shape="row" count={3} label="Loading your goals" />;
   if (goals.isError) {
@@ -114,20 +135,62 @@ function GoalStep({ onDone }: { onDone: () => void }) {
   }
   return (
     <ul className="flex flex-col gap-1" aria-label="Choose a goal">
-      {list.map((g) => (
-        <li key={g.id}>
-          <Link href={`/goals/${g.id}/contribute`} onClick={onDone} className={ROW}>
-            <Row
-              icon={<PiggyBank className="size-(--icon-md)" strokeWidth={1.75} />}
-              tile="bg-secondary-50 text-saving"
-              title={g.name}
-              body={`${g.balance.formatted} of ${g.target.formatted}`}
-            />
-          </Link>
-        </li>
-      ))}
+      {list.map((g) => {
+        const row = (
+          <Row
+            icon={<PiggyBank className="size-(--icon-md)" strokeWidth={1.75} />}
+            tile="bg-secondary-50 text-saving"
+            title={g.name}
+            body={`${g.balance.formatted} of ${g.target.formatted}`}
+          />
+        );
+        return (
+          <li key={g.id}>
+            {onPick ? (
+              <button
+                type="button"
+                className={ROW}
+                onClick={() => {
+                  onPick(g.id, g.name);
+                }}
+              >
+                {row}
+              </button>
+            ) : (
+              <Link href={`/goals/${g.id}/contribute`} onClick={onDone} className={ROW}>
+                {row}
+              </Link>
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
+}
+
+/** Offline: the contribution form for a goal saved on this device. */
+function OfflineContribution({
+  goalId,
+  onDone,
+}: {
+  goalId: string;
+  onDone: (queued: boolean) => void;
+}) {
+  const goal = useGoal(goalId);
+  if (goal.data) {
+    return (
+      <ContributionForm
+        goal={goal.data}
+        onSaved={(r) => {
+          onDone(r.queued === true);
+        }}
+      />
+    );
+  }
+  if (goal.isPending && goal.fetchStatus !== 'paused') {
+    return <LoadingSkeleton shape="row" count={3} label="Loading the goal" />;
+  }
+  return <NotSavedOffline what="This goal" />;
 }
 
 function AddSheet({
@@ -137,48 +200,98 @@ function AddSheet({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const [step, setStep] = useState<'choose' | 'goal'>('choose');
+  const [step, setStep] = useState<Step>({ kind: 'choose' });
+  const online = useOnline();
+  const toast = useToast();
   const close = () => {
     onOpenChange(false);
+    setStep({ kind: 'choose' });
   };
+  // Saved in place (offline, or the connection came back while the form was open).
+  const saved = (queued: boolean, message: string) => {
+    toast({ message: queued ? SAVED_OFFLINE : message });
+    close();
+  };
+  const back = (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="self-start"
+      onClick={() => {
+        setStep({ kind: 'choose' });
+      }}
+    >
+      Back
+    </Button>
+  );
+  const title =
+    step.kind === 'choose'
+      ? 'Add'
+      : step.kind === 'goal'
+        ? 'Add to which goal?'
+        : step.kind === 'transaction'
+          ? step.type === 'income'
+            ? 'Add income'
+            : 'Add expense'
+          : `Add contribution to ${step.name}`;
+
+  const choice = (type: 'income' | 'expense', row: ReactNode) =>
+    online ? (
+      <Link href={`/add/${type}`} onClick={close} className={ROW}>
+        {row}
+      </Link>
+    ) : (
+      <button
+        type="button"
+        className={ROW}
+        onClick={() => {
+          setStep({ kind: 'transaction', type });
+        }}
+      >
+        {row}
+      </button>
+    );
+
   return (
     <Dialog
       open={open}
       onOpenChange={(next) => {
         onOpenChange(next);
-        if (!next) setStep('choose');
+        if (!next) setStep({ kind: 'choose' });
       }}
-      title={step === 'choose' ? 'Add' : 'Add to which goal?'}
+      title={title}
       presentation="responsive"
     >
-      {step === 'choose' ? (
+      {step.kind === 'choose' && (
         <ul className="flex flex-col gap-1">
           <li>
-            <Link href="/add/income" onClick={close} className={ROW}>
+            {choice(
+              'income',
               <Row
                 icon={<ArrowDownLeft className="size-(--icon-md)" strokeWidth={1.75} />}
                 tile="bg-status-ontrack-bg text-income"
                 title="Income"
                 body="Money you received"
-              />
-            </Link>
+              />,
+            )}
           </li>
           <li>
-            <Link href="/add/expense" onClick={close} className={ROW}>
+            {choice(
+              'expense',
               <Row
                 icon={<ArrowUpRight className="size-(--icon-md)" strokeWidth={1.75} />}
                 tile="bg-status-behind-bg text-expense"
                 title="Expense"
                 body="Money you spent"
-              />
-            </Link>
+              />,
+            )}
           </li>
           <li>
             <button
               type="button"
               className={ROW}
               onClick={() => {
-                setStep('goal');
+                setStep({ kind: 'goal' });
               }}
             >
               <Row
@@ -190,19 +303,45 @@ function AddSheet({
             </button>
           </li>
         </ul>
-      ) : (
+      )}
+      {step.kind === 'goal' && (
         <div className="flex flex-col gap-3">
-          <GoalStep onDone={close} />
-          <Button
-            variant="ghost"
-            size="sm"
-            className="self-start"
-            onClick={() => {
-              setStep('choose');
+          <GoalStep
+            onDone={close}
+            {...(online
+              ? {}
+              : {
+                  onPick: (goalId: string, name: string) => {
+                    setStep({ kind: 'contribution', goalId, name });
+                  },
+                })}
+          />
+          {back}
+        </div>
+      )}
+      {step.kind === 'transaction' && (
+        <div className="flex flex-col gap-3">
+          {back}
+          <TransactionForm
+            type={step.type}
+            onSaved={(_saved, outcome) => {
+              saved(
+                outcome === 'queued',
+                step.type === 'income' ? 'Income added' : 'Expense added',
+              );
             }}
-          >
-            Back
-          </Button>
+          />
+        </div>
+      )}
+      {step.kind === 'contribution' && (
+        <div className="flex flex-col gap-3">
+          {back}
+          <OfflineContribution
+            goalId={step.goalId}
+            onDone={(queued) => {
+              saved(queued, 'Contribution added');
+            }}
+          />
         </div>
       )}
     </Dialog>

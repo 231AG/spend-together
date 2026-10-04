@@ -1,5 +1,6 @@
 'use client';
 
+import { avgDailySpending, isInPeriod, withPending } from '@spendtogether/domain';
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,15 @@ import { GoalCard } from '@/components/ui/goal-card';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { TransactionRow } from '@/components/ui/transaction-row';
 import { useAddSheet } from '@/components/features/add-sheet';
+import {
+  CachedFiguresBanner,
+  NotSavedOffline,
+  PendingRows,
+  waitingForNetwork,
+} from '@/components/features/offline/offline-states';
+import { useMyOutbox } from '@/components/features/offline/sync-queue';
+import { useOnline } from '@/lib/connectivity';
+import { pendingTotalsInput, waiting } from '@/lib/pending-entries';
 import { goalCardData, money, type HomePeriod } from '@/lib/insights';
 import { useCategories, useCurrencies, useHomeSummary, useMe, useToday } from '@/lib/queries';
 import { itemHref, toRowData } from '@/lib/transactions';
@@ -20,6 +30,8 @@ import { SummaryHeroCard } from './summary-hero-card';
 // lives in the URL. Mobile stacks hero → spending → goals (W-02); from 1024 px the hero
 // and spending sit side by side with goals and recent activity below (W-01).
 
+const PERIOD_TYPE = { daily: 'day', weekly: 'week', monthly: 'month' } as const;
+
 export function HomeView() {
   const [period] = useUrlParam<HomePeriod>('period', ['today', 'week', 'month'], 'month');
   const summary = useHomeSummary(period);
@@ -28,6 +40,8 @@ export function HomeView() {
   const currencies = useCurrencies();
   const categories = useCategories('all');
   const { openAdd } = useAddSheet();
+  const queued = useMyOutbox();
+  const online = useOnline();
 
   const looks = useMemo(
     () =>
@@ -37,6 +51,14 @@ export function HomeView() {
     [categories.data],
   );
 
+  if (waitingForNetwork(summary)) {
+    return (
+      <div className="flex flex-col gap-4">
+        <NotSavedOffline what="Your summary" />
+        <PendingRows items={queued} baseCurrency={me.data?.base_currency ?? 'USD'} />
+      </div>
+    );
+  }
   if (summary.isPending) {
     return (
       <div className="flex flex-col gap-4">
@@ -55,11 +77,43 @@ export function HomeView() {
     );
   }
 
-  const data = summary.data;
-  const base = data.currency;
+  const cached = summary.data;
+  const base = cached.currency;
+  // §19.2 Home offline: queued entries applied locally to the cached figures, by the same
+  // formulas (estimates; the server's answer replaces them on sync).
+  const pendingInput = pendingTotalsInput(queued, base);
+  const shownPeriod = {
+    type: PERIOD_TYPE[cached.period.type],
+    start: cached.period.start,
+    end: cached.period.end,
+  };
+  const applied = pendingInput.entries.filter((e) => isInPeriod(e.date, shownPeriod));
+  const local = applied.length > 0 ? withPending(cached.totals, applied, shownPeriod) : null;
+  const data = local
+    ? {
+        ...cached,
+        totals: {
+          ...cached.totals,
+          avg_daily_spending: today
+            ? avgDailySpending(local.expenses, shownPeriod, today)
+            : cached.totals.avg_daily_spending,
+          income: local.income,
+          expenses: local.expenses,
+          saved: local.saved,
+          net: local.net,
+          remaining: local.remaining,
+          savings_rate_pct: local.savingsRatePct,
+        },
+      }
+    : cached;
+  const pendingNote =
+    applied.length === 0
+      ? undefined
+      : `Includes ${String(applied.length)} ${applied.length === 1 ? 'entry' : 'entries'} waiting to sync (estimated).`;
   const meta = currencies.byCode.get(base);
   const asMoney = (amountMinor: number) => money(amountMinor, base, meta);
   const firstRun =
+    waiting(queued).length === 0 &&
     data.recent.length === 0 &&
     data.goals.length === 0 &&
     data.totals.income === 0 &&
@@ -85,8 +139,14 @@ export function HomeView() {
 
   return (
     <div className="flex flex-col gap-6" aria-busy={summary.isFetching || undefined}>
+      {!online && <CachedFiguresBanner />}
       <div className="grid gap-6 lg:grid-cols-2">
-        <SummaryHeroCard summary={data} period={period} money={asMoney} />
+        <SummaryHeroCard
+          summary={data}
+          period={period}
+          money={asMoney}
+          {...(pendingNote ? { pendingNote } : {})}
+        />
         <SpendingPreview summary={data} money={asMoney} looks={looks} />
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
@@ -133,6 +193,7 @@ export function HomeView() {
               All activity
             </Link>
           </div>
+          <PendingRows items={queued} baseCurrency={base} limit={5} />
           <ul className="flex flex-col rounded-xl bg-bg-card p-2 shadow-elev-1">
             {data.recent.map((item) => (
               <li key={item.id}>

@@ -81,14 +81,16 @@ export function useCurrencies() {
   return { ...query, byCode };
 }
 
-/** Active categories (archived ones are hidden from pickers, BR-17). */
+/**
+ * Active categories (archived ones are hidden from pickers, BR-17). One request for both
+ * types, filtered here: whichever screen loaded it, every form has it offline (F12).
+ */
 export function useCategories(type: 'income' | 'expense' | 'all' = 'all') {
   return useQuery({
-    queryKey: queryKeys.categories(type),
-    queryFn: () =>
-      apiClient.call(endpoints.listCategories, { query: type === 'all' ? {} : { type } }),
+    queryKey: queryKeys.categories('all'),
+    queryFn: () => apiClient.call(endpoints.listCategories, { query: {} }),
     staleTime: 5 * 60_000,
-    select: (res) => res.data,
+    select: (res) => (type === 'all' ? res.data : res.data.filter((c) => c.type === type)),
   });
 }
 

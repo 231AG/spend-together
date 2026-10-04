@@ -18,5 +18,5 @@
     ".storybook/*.tsx",
     ".next/types/**/*.ts"
   ],
-  "exclude": ["node_modules", ".next", "storybook-static"]
+  "exclude": ["node_modules", ".next", "storybook-static", "worker"]
 }

@@ -6,3 +6,4 @@ design-preview/
 **/coverage/
 *.md
 storybook-static/
+apps/web/public/sw.js*

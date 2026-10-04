@@ -12,6 +12,8 @@ export async function useScenario(
     failing?: 'all' | string[];
     latencyMs?: number;
     recalcMs?: number;
+    lostResponses?: number;
+    rejecting?: string[];
   } = {},
 ): Promise<void> {
   await page.addInitScript(
