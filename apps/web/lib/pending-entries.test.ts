@@ -109,6 +109,16 @@ describe('pending entries', () => {
       ],
       skipped: 1,
     });
+    // A sent entry whose answer was lost may already be in the server's figures: listed,
+    // never added (no double counting).
+    expect(pendingTotalsInput([{ ...salary, attempts: 1 }], 'USD')).toEqual({
+      entries: [],
+      skipped: 1,
+    });
+    expect(pendingGoalMinor([{ ...savings, attempts: 2 }], 'goal-laptop')).toEqual({
+      minor: 0,
+      unknown: 0,
+    });
     // After a base-currency change the estimates no longer apply.
     expect(pendingTotalsInput([taxi], 'EUR')).toEqual({ entries: [], skipped: 1 });
   });

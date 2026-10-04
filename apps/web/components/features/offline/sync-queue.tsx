@@ -16,7 +16,7 @@ import { OfflineSyncIndicator } from '@/components/ui/offline-sync-indicator';
 import { useToast } from '@/components/ui/toast';
 import { useOnline } from '@/lib/connectivity';
 import { formatDay } from '@/lib/format-date';
-import { outbox, useOutbox } from '@/lib/offline-queue';
+import { outbox, useOutbox, useSending } from '@/lib/offline-queue';
 import { onSyncPass, startOutboxSync, syncNow } from '@/lib/offline-sync';
 import { canEdit, needsAttention, retried, type OutboxItem } from '@/lib/outbox-machine';
 import { waiting } from '@/lib/pending-entries';
@@ -239,7 +239,11 @@ function SyncQueueDialog({
           if (!next) setDiscarding(null);
         }}
         title="Discard this entry?"
-        consequences="It hasn't been saved to your account, so it can't be recovered."
+        consequences={
+          discarding && (discarding.attempts > 0 || discarding.state === 'exhausted')
+            ? "It may not have reached your account. If it did, it will still appear in your activity; if not, it can't be recovered."
+            : "It hasn't been saved to your account, so it can't be recovered."
+        }
         confirmLabel="Discard"
         destructive
         onConfirm={() => {
@@ -270,6 +274,7 @@ function QueueRow({
   const word =
     d.kind === 'contribution' ? 'Contribution' : d.type === 'income' ? 'Income' : 'Expense';
   const base = d.kind === 'contribution' ? d.goalEstimate : d.baseEstimate;
+  const sending = useSending().has(item.id);
   return (
     <li className="flex flex-col gap-2 p-3">
       <div className="flex items-start gap-3">
@@ -296,45 +301,53 @@ function QueueRow({
           {item.reason}
         </p>
       )}
-      <div className="flex flex-wrap gap-2">
-        {canEdit(item) && (
+      {sending ? (
+        // The answer decides what happens to it; Edit and Discard wait for that.
+        <p role="status" className="flex items-center gap-2 type-body-sm text-fg-muted">
+          <RefreshCw aria-hidden className="spin size-(--icon-sm)" strokeWidth={1.75} />
+          Sending…
+        </p>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {canEdit(item) && (
+            <Button
+              variant="tertiary"
+              size="sm"
+              aria-label={`Edit ${word.toLowerCase()} ${d.title}`}
+              iconLeft={<Pencil aria-hidden className="size-(--icon-sm)" strokeWidth={1.75} />}
+              onClick={() => {
+                onEdit(item);
+              }}
+            >
+              Edit
+            </Button>
+          )}
+          {item.state === 'exhausted' && onRetry && (
+            <Button
+              variant="tertiary"
+              size="sm"
+              aria-label={`Try again: ${word.toLowerCase()} ${d.title}`}
+              iconLeft={<RefreshCw aria-hidden className="size-(--icon-sm)" strokeWidth={1.75} />}
+              onClick={() => {
+                onRetry(item);
+              }}
+            >
+              Try again
+            </Button>
+          )}
           <Button
             variant="tertiary"
             size="sm"
-            aria-label={`Edit ${word.toLowerCase()} ${d.title}`}
-            iconLeft={<Pencil aria-hidden className="size-(--icon-sm)" strokeWidth={1.75} />}
+            aria-label={`Discard ${word.toLowerCase()} ${d.title}`}
+            iconLeft={<Trash2 aria-hidden className="size-(--icon-sm)" strokeWidth={1.75} />}
             onClick={() => {
-              onEdit(item);
+              onDiscard(item);
             }}
           >
-            Edit
+            Discard
           </Button>
-        )}
-        {item.state === 'exhausted' && onRetry && (
-          <Button
-            variant="tertiary"
-            size="sm"
-            aria-label={`Try again: ${word.toLowerCase()} ${d.title}`}
-            iconLeft={<RefreshCw aria-hidden className="size-(--icon-sm)" strokeWidth={1.75} />}
-            onClick={() => {
-              onRetry(item);
-            }}
-          >
-            Try again
-          </Button>
-        )}
-        <Button
-          variant="tertiary"
-          size="sm"
-          aria-label={`Discard ${word.toLowerCase()} ${d.title}`}
-          iconLeft={<Trash2 aria-hidden className="size-(--icon-sm)" strokeWidth={1.75} />}
-          onClick={() => {
-            onDiscard(item);
-          }}
-        >
-          Discard
-        </Button>
-      </div>
+        </div>
+      )}
     </li>
   );
 }

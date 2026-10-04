@@ -226,12 +226,22 @@ function LoadedForm({
   }
 
   /** Keep it on this device; the outbox syncs it (F12-05). Never lost. */
-  function keep(body: Record<string, unknown> & { amount_minor: number; category_id: string }) {
+  function keep(
+    body: Record<string, unknown> & { amount_minor: number; category_id: string },
+    sent = false,
+  ) {
     setQueueing(true);
     const shown = display(body.amount_minor, body.category_id);
     const done = queued
       ? updateQueued(queued, body, shown)
-      : queueEntry({ id: clientId, endpoint: 'createTransaction', body, ownerId, display: shown });
+      : queueEntry({
+          id: clientId,
+          endpoint: 'createTransaction',
+          body,
+          ownerId,
+          display: shown,
+          sent,
+        });
     void done.then(
       () => {
         setQueueing(false);
@@ -284,7 +294,7 @@ function LoadedForm({
           },
           // The connection dropped mid-save: keep it rather than ask for a retry (§19.3).
           onError: (error) => {
-            if (isNetworkFailure(error)) keep(body);
+            if (isNetworkFailure(error)) keep(body, true);
             else fail(error);
           },
         },

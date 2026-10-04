@@ -79,7 +79,8 @@ function Loaded({ goal }: { goal: GoalDetail }) {
         status: local.completes ? 'completed' : goal.status,
       }
     : goal;
-  const waitingCount = pendingForGoal(queued, goal.id).length;
+  // Only entries certainly not on the server yet are applied (no double counting).
+  const waitingCount = pendingForGoal(queued, goal.id).filter((i) => i.attempts === 0).length;
   const completed = shown.status === 'completed';
   const pct = progressLabel(shown.progress_pct, completed);
   const saved = fmt(shown.balance.amount_minor);

@@ -26,8 +26,11 @@ export function registerOfflineStore(store: OfflineStore): () => void {
 
 /** Unsynced entries across every offline store (0 until F12 adds the outbox). */
 export async function pendingOfflineEntries(): Promise<number> {
-  const counts = await Promise.all([...stores].map((s) => Promise.resolve(s.pending())));
-  return counts.reduce((a, b) => a + b, 0);
+  // A store that can't be read counts as empty rather than blocking logout.
+  const counts = await Promise.allSettled(
+    [...stores].map((s) => Promise.resolve().then(() => s.pending())),
+  );
+  return counts.reduce((sum, c) => sum + (c.status === 'fulfilled' ? c.value : 0), 0);
 }
 
 let signedOutOnPurpose = false;

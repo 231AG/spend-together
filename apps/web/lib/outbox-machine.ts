@@ -1,3 +1,4 @@
+import { ZodError } from 'zod';
 import { ApiError } from './api-client';
 import type { MoneyDisplay } from './format-money';
 
@@ -76,6 +77,17 @@ export type Failure =
 
 const RETRYABLE = new Set([408, 425, 429]);
 
+/** A stored entry missing what its request needs (e.g. a contribution without its goal). */
+export class InvalidEntryError extends Error {
+  constructor() {
+    super('This entry is incomplete.');
+    this.name = 'InvalidEntryError';
+  }
+}
+
+export const INVALID_REASON =
+  "This entry can't be sent as it is. Edit it to check the details, or discard it.";
+
 /** Sort an attempt's outcome into the three kinds above. */
 export function classify(error: unknown): Failure {
   if (error instanceof ApiError) {
@@ -85,6 +97,10 @@ export function classify(error: unknown): Failure {
     }
     const fields = Object.values(error.fields);
     return { kind: 'permanent', reason: fields.length > 0 ? fields.join(' ') : error.message };
+  }
+  // The entry itself can't be sent as stored: retrying won't change that, editing might.
+  if (error instanceof ZodError || error instanceof InvalidEntryError) {
+    return { kind: 'permanent', reason: INVALID_REASON };
   }
   // fetch's TypeError, an aborted request, a malformed response: try again later.
   return { kind: 'transient' };

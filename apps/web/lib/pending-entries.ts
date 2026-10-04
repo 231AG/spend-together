@@ -5,7 +5,9 @@ import { needsAttention, type OutboxItem } from './outbox-machine';
 // Queued entries as the screens show them (§19.2 offline column): rows marked "Sync
 // pending" at the top of Activity and Home, a goal's own queued contributions, and the
 // estimates Home applies to its cached totals. Refused entries are left to Needs
-// attention; they count nowhere until fixed.
+// attention; they count nowhere until fixed. Only entries never sent are added to
+// totals: one whose answer was lost may already be in the server's figures, and must not
+// be counted twice.
 
 /** Pending (not refused or exhausted), newest first, as on Activity. */
 export function waiting(items: readonly OutboxItem[]): OutboxItem[] {
@@ -49,6 +51,11 @@ export function pendingRow(item: OutboxItem): TransactionRowData {
   };
 }
 
+/** Certainly not on the server yet, so safe to add to its figures. */
+function neverSent(item: OutboxItem): boolean {
+  return item.attempts === 0;
+}
+
 /** A goal's queued contributions, in the goal's currency where known. */
 export function pendingForGoal(items: readonly OutboxItem[], goalId: string): OutboxItem[] {
   return waiting(items).filter(
@@ -66,7 +73,7 @@ export function pendingGoalMinor(
 } {
   let minor = 0;
   let unknown = 0;
-  for (const item of pendingForGoal(items, goalId)) {
+  for (const item of pendingForGoal(items, goalId).filter(neverSent)) {
     const d = item.display;
     if (d.kind !== 'contribution') continue;
     if (d.goalEstimate) minor += d.goalEstimate.amountMinor;
@@ -87,7 +94,7 @@ export function pendingTotalsInput(
   let skipped = 0;
   for (const item of waiting(items)) {
     const d = item.display;
-    const estimate = d.baseEstimate;
+    const estimate = neverSent(item) ? d.baseEstimate : null;
     if (!estimate || estimate.currency !== base) {
       skipped += 1;
       continue;

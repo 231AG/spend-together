@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import { z } from 'zod';
 import { ApiError } from './api-client';
 import {
   EXHAUSTED_REASON,
+  INVALID_REASON,
+  InvalidEntryError,
   MAX_ATTEMPTS,
   afterFailure,
   backoffMs,
@@ -55,6 +58,14 @@ describe('classify', () => {
   it('an ended session blocks without spending an attempt', () => {
     expect(classify(apiError(401, 'UNAUTHENTICATED', 'x'))).toEqual({ kind: 'blocked' });
     expect(afterFailure(item(), { kind: 'blocked' }, 0)).toEqual(item());
+  });
+  it('an entry that can’t be sent as stored is refused (editable), not retried 8 times', () => {
+    const zod = z.object({ amount_minor: z.int() }).safeParse({ amount_minor: 'x' }).error;
+    expect(classify(zod)).toEqual({ kind: 'permanent', reason: INVALID_REASON });
+    expect(classify(new InvalidEntryError())).toEqual({
+      kind: 'permanent',
+      reason: INVALID_REASON,
+    });
   });
   it('a refusal is permanent, with the server’s plain-language reason', () => {
     expect(classify(apiError(409, 'CONFLICT', 'This goal was archived.'))).toEqual({

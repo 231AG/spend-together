@@ -23,6 +23,11 @@ export async function queueEntry(input: {
   body: Record<string, unknown>;
   ownerId: string;
   display: OutboxDisplay;
+  /**
+   * The request already went out and its answer was lost, so the server may have stored
+   * it: it counts as one attempt (not editable, not added to local totals).
+   */
+  sent?: boolean;
 }): Promise<OutboxItem> {
   const item: OutboxItem = {
     id: input.id,
@@ -31,7 +36,7 @@ export async function queueEntry(input: {
     body: input.body,
     idempotency_key: input.id,
     created_at: systemClock.now().toISOString(),
-    attempts: 0,
+    attempts: input.sent ? 1 : 0,
     owner_id: input.ownerId,
     state: 'pending',
     next_attempt_at: null,

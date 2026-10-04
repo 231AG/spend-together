@@ -172,7 +172,7 @@ function LoadedContributionForm({
   }
 
   /** Keep it on this device to sync later; the goal recomputes locally meanwhile. */
-  function keep(body: Record<string, unknown> & { amount_minor: number }) {
+  function keep(body: Record<string, unknown> & { amount_minor: number }, sent = false) {
     setQueueing(true);
     const shown = display(body.amount_minor);
     const done = queued
@@ -184,6 +184,7 @@ function LoadedContributionForm({
           body,
           ownerId,
           display: shown,
+          sent,
         });
     void done.then(
       () => {
@@ -238,7 +239,7 @@ function LoadedContributionForm({
         },
         // The connection dropped mid-save: keep it rather than ask for a retry (§19.3).
         onError: (error) => {
-          if (isNetworkFailure(error)) keep(body);
+          if (isNetworkFailure(error)) keep(body, true);
           else fail(error);
         },
       });

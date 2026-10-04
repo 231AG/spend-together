@@ -6,6 +6,7 @@ import { applyScenario } from '@/mocks/scenarios';
 import { call, id, useMockServer as withMockServer } from '@/mocks/test-utils';
 import { apiClient } from './api-client';
 import { systemClock } from './clock';
+import { announceMockConnectivity } from './connectivity';
 import { Outbox, memoryStorage, outbox, setOutbox } from './offline-queue';
 import {
   OUTBOX_QUEUED_EVENT,
@@ -206,6 +207,44 @@ describe('triggers (§19.3 point 4)', () => {
     window.dispatchEvent(new Event(OUTBOX_QUEUED_EVENT));
     await settle();
     expect(attempts()).toBe(2);
+  });
+
+  it('a past deadline while offline schedules nothing (no busy loop); reconnecting sends', async () => {
+    spy.mockResolvedValue({});
+    announceMockConnectivity(true);
+    await box.put(expense(1, { attempts: 1, next_attempt_at: systemClock.now().getTime() - 1 }));
+    stop = startOutboxSync(qc, ALEX);
+    await settle();
+    expect(attempts()).toBe(0);
+    expect(vi.getTimerCount()).toBe(1); // the 60 s poll only
+    // The mock's Offline preset ending counts as coming back online.
+    announceMockConnectivity(false);
+    await settle();
+    expect(attempts()).toBe(1);
+  });
+
+  it('an entry queued during a pass gets its own pass straight after', async () => {
+    let release: () => void = () => undefined;
+    spy.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          release = () => {
+            resolve({});
+          };
+        }),
+    );
+    spy.mockResolvedValue({});
+    await box.put(expense(1));
+    stop = startOutboxSync(qc, ALEX);
+    await settle();
+    expect(box.sending().has(uuid(1))).toBe(true);
+    await box.put(expense(2));
+    window.dispatchEvent(new Event(OUTBOX_QUEUED_EVENT));
+    release();
+    await settle();
+    expect(attempts()).toBe(2);
+    expect(box.snapshot()).toEqual([]);
+    expect(box.sending().size).toBe(0);
   });
 
   it('every 60 s while something waits, and not otherwise', async () => {

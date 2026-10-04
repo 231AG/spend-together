@@ -4,9 +4,18 @@ import { endpoints } from '@spendtogether/schemas';
 import type { QueryClient } from '@tanstack/react-query';
 import { apiClient } from './api-client';
 import { systemClock } from './clock';
+import { MOCK_CONNECTIVITY_EVENT, isOnline } from './connectivity';
 import { outbox, type Outbox } from './offline-queue';
-import { afterFailure, classify, fifo, isDue, wakeAll, type OutboxItem } from './outbox-machine';
-import { TRANSACTION_DEPENDENTS } from './queries';
+import {
+  InvalidEntryError,
+  afterFailure,
+  classify,
+  fifo,
+  isDue,
+  wakeAll,
+  type OutboxItem,
+} from './outbox-machine';
+import { TRANSACTION_DEPENDENTS, queryKeys } from './queries';
 import { OUTBOX_SYNC_MESSAGE, OUTBOX_SYNC_TAG } from './sw-messages';
 
 // F12-07 / F12-08 (§19.3 point 4): drain the outbox oldest first. Every attempt carries the
@@ -40,19 +49,27 @@ export async function runPass({ box, ownerId, send, nowMs }: PassDeps): Promise<
     if (item.state !== 'pending') continue;
     // FIFO: an earlier entry still backing off holds the ones behind it.
     if (!isDue(item, nowMs())) break;
+    // While the request is out, the queue holds Edit and Discard for this entry, so the
+    // answer is applied to the entry that was sent, not to a newer edit.
+    box.setSending(item.id, true);
     try {
       await send(item);
       await box.remove(item.id);
       result.synced.push(item);
     } catch (error) {
       const failure = classify(error);
-      const next = afterFailure(item, failure, nowMs());
-      if (next !== item) await box.put(next);
+      const now = box.current(item.id);
+      // Discarded meanwhile (another tab): nothing to record.
+      if (!now) continue;
+      const next = afterFailure(now, failure, nowMs());
+      if (next !== now) await box.put(next);
       if (next.state !== 'pending') {
         result.attention.push(next);
         continue;
       }
       break;
+    } finally {
+      box.setSending(item.id, false);
     }
   }
   return result;
@@ -64,7 +81,7 @@ export async function runPass({ box, ownerId, send, nowMs }: PassDeps): Promise<
  */
 export function sendItem(item: OutboxItem): Promise<unknown> {
   if (item.endpoint === 'createContribution') {
-    if (!item.params) throw new TypeError('A queued contribution needs its goal id.');
+    if (!item.params) throw new InvalidEntryError();
     return apiClient.call(endpoints.createContribution, {
       params: item.params,
       body: item.body as never,
@@ -89,14 +106,21 @@ export function onSyncPass(listener: Listener): () => void {
 }
 
 let running: Promise<void> | null = null;
+let again = false;
 
 /**
- * Run a pass now unless one is running (in this tab, or in another one holding the lock).
- * Skipped while offline: an attempt that can't leave the device shouldn't count.
+ * Run a pass now. If one is running (it read the queue before this call), another follows
+ * it, so an entry queued meanwhile isn't left for the 60 s poll. Another tab holding the
+ * lock does the work instead. Skipped while offline: an attempt that can't leave the
+ * device shouldn't count.
  */
 export function syncNow(qc: QueryClient, ownerId: string): Promise<void> {
-  if (!navigator.onLine) return Promise.resolve();
-  running ??= (async () => {
+  if (!isOnline()) return Promise.resolve();
+  if (running) {
+    again = true;
+    return running;
+  }
+  running = (async () => {
     try {
       const pass = () =>
         runPass({ box: outbox, ownerId, send: sendItem, nowMs: () => systemClock.now().getTime() });
@@ -107,6 +131,10 @@ export function syncNow(qc: QueryClient, ownerId: string): Promise<void> {
       }
     } finally {
       running = null;
+    }
+    if (again) {
+      again = false;
+      await syncNow(qc, ownerId);
     }
   })();
   return running;
@@ -120,10 +148,13 @@ async function withLock<T>(fn: () => Promise<T>): Promise<T | null> {
   );
 }
 
-/** Synced entries move totals, lists and goals: the server's figures replace estimates. */
+/**
+ * Synced entries move totals, lists and goals (shared ones show on Couple): the server's
+ * figures replace the estimates.
+ */
 function refreshAfterSync(qc: QueryClient) {
   return Promise.all(
-    [...TRANSACTION_DEPENDENTS, ['goals'], ['transactions']].map((queryKey) =>
+    [...TRANSACTION_DEPENDENTS, ['goals'], queryKeys.couple].map((queryKey) =>
       qc.invalidateQueries({ queryKey: [...queryKey] }),
     ),
   );
@@ -169,9 +200,10 @@ export function startOutboxSync(qc: QueryClient, ownerId: string): () => void {
       if (stopped) return;
       window.clearTimeout(retry);
       const deadline = nextDeadline(outbox.snapshot(), ownerId);
-      if (deadline !== null) {
-        retry = window.setTimeout(run, Math.max(0, deadline - systemClock.now().getTime()));
-      }
+      const wait = deadline === null ? null : deadline - systemClock.now().getTime();
+      // Only a deadline still ahead: one already past means the pass couldn't run (offline,
+      // another tab, a 401), and the online, focus and poll triggers cover that.
+      if (wait !== null && wait > 0) retry = window.setTimeout(run, wait);
     });
   };
   const online = () => {
@@ -197,20 +229,27 @@ export function startOutboxSync(qc: QueryClient, ownerId: string): () => void {
     if (outbox.snapshot().some((i) => i.owner_id === ownerId && i.state === 'pending')) run();
   }, POLL_MS);
 
+  // The mock's Offline preset ends the same way the network does.
+  const mockConnectivity = () => {
+    if (isOnline()) online();
+  };
+
   window.addEventListener('online', online);
+  window.addEventListener(MOCK_CONNECTIVITY_EVENT, mockConnectivity);
   window.addEventListener('focus', run);
   window.addEventListener(OUTBOX_QUEUED_EVENT, run);
   document.addEventListener('visibilitychange', visible);
   // Absent on insecure origins (plain http other than localhost).
   const worker = 'serviceWorker' in navigator ? navigator.serviceWorker : null;
   worker?.addEventListener('message', message);
-  void outbox.load().then(run);
+  void outbox.load().then(run, () => undefined);
 
   return () => {
     stopped = true;
     window.clearTimeout(retry);
     window.clearInterval(timer);
     window.removeEventListener('online', online);
+    window.removeEventListener(MOCK_CONNECTIVITY_EVENT, mockConnectivity);
     window.removeEventListener('focus', run);
     window.removeEventListener(OUTBOX_QUEUED_EVENT, run);
     document.removeEventListener('visibilitychange', visible);

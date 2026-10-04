@@ -26,10 +26,11 @@ function subscribe(onChange: () => void) {
   };
 }
 
+/** The same signal outside React (the outbox sync, F12). */
+export function isOnline(): boolean {
+  return navigator.onLine && !mockOffline;
+}
+
 export function useOnline(): boolean {
-  return useSyncExternalStore(
-    subscribe,
-    () => navigator.onLine && !mockOffline,
-    () => true,
-  );
+  return useSyncExternalStore(subscribe, isOnline, () => true);
 }
