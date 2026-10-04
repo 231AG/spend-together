@@ -1,5 +1,7 @@
 'use client';
 
+import { NotSavedOffline, waitingForNetwork } from '@/components/features/offline/offline-states';
+
 import { endpoints, type Transaction } from '@spendtogether/schemas';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowDownLeft, ArrowUpRight, Info } from 'lucide-react';
@@ -20,6 +22,8 @@ import { formatDay } from '@/lib/format-date';
 import { ESTIMATED_RATE_NOTE, formatMoney } from '@/lib/format-money';
 import { queryKeys, useCurrencies } from '@/lib/queries';
 import { describeRate, display } from '@/lib/transactions';
+import { useOnline } from '@/lib/connectivity';
+import { OFFLINE_BLOCKED } from '@/lib/couple';
 import { restoreTransaction, useDeleteTransaction } from './use-transaction-mutations';
 
 // SCR-13 (F7-07, F7-09): the full record, with the original amount, the converted one,
@@ -43,6 +47,7 @@ export function TransactionGate({
   children: (t: Transaction) => ReactNode;
 }) {
   const query = useTransaction(id);
+  if (waitingForNetwork(query)) return <NotSavedOffline what="This entry" />;
   if (query.isPending) return <LoadingSkeleton shape="card" label="Loading transaction" />;
   if (query.isError) {
     if (query.error instanceof ApiError && query.error.status === 404) {
@@ -90,6 +95,7 @@ function Details({ t }: { t: Transaction }) {
   const [confirming, setConfirming] = useState(false);
   const queryClient = useQueryClient();
   const remove = useDeleteTransaction();
+  const online = useOnline();
   const search = params.toString();
   const suffix = search ? `?${search}` : '';
 
@@ -181,28 +187,41 @@ function Details({ t }: { t: Transaction }) {
           We couldn't delete this. Nothing was changed; try again.
         </FormNotice>
       )}
-      <div className="flex flex-wrap gap-3">
-        <Link
-          href={`/activity/${t.id}/edit${suffix}`}
-          className="inline-flex min-h-(--touch-min) items-center rounded-md bg-action-primary-bg px-5 type-label text-action-primary-fg hover:bg-action-primary-bg-hover"
-        >
-          Edit
-        </Link>
-        <ConfirmationDialog
-          open={confirming}
-          onOpenChange={setConfirming}
-          title={`Delete this ${word.toLowerCase()}?`}
-          consequences="Your totals and insights will be recalculated. You can undo for 5 seconds."
-          confirmLabel="Delete"
-          destructive
-          onConfirm={confirmDelete}
-          trigger={
-            <Button variant="tertiary" loading={remove.isPending}>
+      {/* §19.1: a synced record can't change offline; say so rather than fail later. */}
+      {!online ? (
+        <div className="flex flex-col gap-3">
+          <FormNotice tone="offline">{OFFLINE_BLOCKED}</FormNotice>
+          <div className="flex flex-wrap gap-3">
+            <Button disabled>Edit</Button>
+            <Button variant="tertiary" disabled>
               Delete
             </Button>
-          }
-        />
-      </div>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href={`/activity/${t.id}/edit${suffix}`}
+            className="inline-flex min-h-(--touch-min) items-center rounded-md bg-action-primary-bg px-5 type-label text-action-primary-fg hover:bg-action-primary-bg-hover"
+          >
+            Edit
+          </Link>
+          <ConfirmationDialog
+            open={confirming}
+            onOpenChange={setConfirming}
+            title={`Delete this ${word.toLowerCase()}?`}
+            consequences="Your totals and insights will be recalculated. You can undo for 5 seconds."
+            confirmLabel="Delete"
+            destructive
+            onConfirm={confirmDelete}
+            trigger={
+              <Button variant="tertiary" loading={remove.isPending}>
+                Delete
+              </Button>
+            }
+          />
+        </div>
+      )}
     </article>
   );
 }

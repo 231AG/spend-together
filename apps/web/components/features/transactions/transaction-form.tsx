@@ -17,7 +17,9 @@ import { appClock } from '@/lib/clock';
 import { cn } from '@/lib/cn';
 import { useOnline } from '@/lib/connectivity';
 import { previewConversion, tooSmallMessage } from '@/lib/conversion-preview';
-import { formatMoney } from '@/lib/format-money';
+import { formatMoney, type MoneyDisplay } from '@/lib/format-money';
+import { isNetworkFailure, queueEntry, updateQueued } from '@/lib/offline-entry';
+import type { OutboxDisplay, OutboxItem } from '@/lib/outbox-machine';
 import { queryKeys, useCategories, useCurrencies, useMe, useRates, useToday } from '@/lib/queries';
 import { crossRateFor, recentDistinct } from '@/lib/transactions';
 import { useCreateTransaction, usePatchTransaction } from './use-transaction-mutations';
@@ -31,11 +33,25 @@ import { useCreateTransaction, usePatchTransaction } from './use-transaction-mut
 export type TransactionType = 'income' | 'expense';
 const NOTE_MAX = 280;
 
+export type SaveOutcome = 'created' | 'updated' | 'queued';
+
 export interface TransactionFormProps {
   type: TransactionType;
   /** Edit mode: the record being changed. */
   initial?: Transaction;
-  onSaved: (saved: Transaction, change: 'created' | 'updated') => void;
+  /** Edit an entry still waiting to sync: saving replaces it in the outbox (§19.3.3). */
+  queued?: OutboxItem;
+  /** `saved` is null when the entry was kept on this device to sync later. */
+  onSaved: (saved: Transaction | null, outcome: SaveOutcome) => void;
+}
+
+/** A queued body, read back for editing. */
+interface QueuedTransactionBody {
+  amount_minor: number;
+  currency: string;
+  category_id: string;
+  transaction_date: string;
+  note?: string;
 }
 
 function useRecent(type: TransactionType) {
@@ -62,6 +78,7 @@ export function TransactionForm(props: TransactionFormProps) {
     <LoadedForm
       {...props}
       base={me.data.base_currency}
+      ownerId={me.data.id}
       today={today}
       currencies={currencies.data.data.filter((c) => c.is_active)}
       categories={categories.data}
@@ -71,35 +88,54 @@ export function TransactionForm(props: TransactionFormProps) {
 
 type Loaded = TransactionFormProps & {
   base: string;
+  ownerId: string;
   today: string;
   currencies: { code: string; name: string; exponent: number; symbol: string }[];
   categories: { id: string; name: string; icon: string; color: string; type: TransactionType }[];
 };
 
-function LoadedForm({ type, initial, onSaved, base, today, currencies, categories }: Loaded) {
+function LoadedForm({
+  type,
+  initial,
+  queued,
+  onSaved,
+  base,
+  ownerId,
+  today,
+  currencies,
+  categories,
+}: Loaded) {
   const online = useOnline();
   const noteId = useId();
   const recent = useRecent(type);
   const byCode = useMemo(() => new Map(currencies.map((c) => [c.code, c] as const)), [currencies]);
   const meta = (code: string) => byCode.get(code) ?? { code, exponent: 2, symbol: code };
 
-  const [currency, setCurrency] = useState(initial?.amount.currency ?? base);
+  const kept = queued?.body as QueuedTransactionBody | undefined;
+  const [currency, setCurrency] = useState(initial?.amount.currency ?? kept?.currency ?? base);
   const [text, setText] = useState(() =>
     initial
       ? entryFromMinor(initial.amount.amount_minor, meta(initial.amount.currency).exponent)
-      : '',
+      : kept
+        ? entryFromMinor(kept.amount_minor, meta(kept.currency).exponent)
+        : '',
   );
-  const [categoryId, setCategoryId] = useState<string | null>(initial?.category.id ?? null);
-  const [date, setDate] = useState(initial?.transaction_date ?? today);
-  const [note, setNote] = useState(initial?.note ?? '');
+  const [categoryId, setCategoryId] = useState<string | null>(
+    initial?.category.id ?? kept?.category_id ?? null,
+  );
+  const [date, setDate] = useState(initial?.transaction_date ?? kept?.transaction_date ?? today);
+  const [note, setNote] = useState(initial?.note ?? kept?.note ?? '');
+  const [queueing, setQueueing] = useState(false);
   const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
   const [problem, setProblem] = useState<string | null>(null);
   // One identity per entry: retries of this form reuse it (idempotent create).
-  const [clientId] = useState(() => crypto.randomUUID());
+  const [clientId] = useState(() => queued?.id ?? crypto.randomUUID());
 
   const create = useCreateTransaction();
   const patch = usePatchTransaction(initial?.id ?? '');
-  const saving = create.isPending || patch.isPending;
+  const saving = create.isPending || patch.isPending || queueing;
+  // §19.1: creates (and queued entries) can be saved offline; synced records can't change.
+  const canWork = initial ? online : true;
 
   const from = meta(currency);
   const baseMeta = meta(base);
@@ -123,7 +159,7 @@ function LoadedForm({ type, initial, onSaved, base, today, currencies, categorie
     amountMinor > 0 &&
     categoryId !== null &&
     !tooSmall &&
-    online &&
+    canWork &&
     !saving;
 
   function optimisticItem(): ActivityItem | null {
@@ -166,6 +202,58 @@ function LoadedForm({ type, initial, onSaved, base, today, currencies, categorie
     };
   }
 
+  /** What the "Sync pending" row shows; the base amount is an estimate (§11.2). */
+  function display(minor: number, catId: string): OutboxDisplay {
+    const cat = categories.find((c) => c.id === catId);
+    const shown = (amountMinor: number, code: string): MoneyDisplay => ({
+      amountMinor,
+      currency: code,
+      exponent: meta(code).exponent,
+      symbol: meta(code).symbol,
+    });
+    const baseMinor = !foreign ? minor : preview?.status === 'ok' ? preview.base.amountMinor : null;
+    const trimmed = note.trim();
+    return {
+      kind: 'transaction',
+      type,
+      title: cat?.name ?? 'Category',
+      category: { icon: cat?.icon ?? 'circle-dashed', color: cat?.color ?? 'cat-other' },
+      amount: shown(minor, currency),
+      baseEstimate: baseMinor === null ? null : shown(baseMinor, base),
+      date,
+      ...(trimmed ? { note: trimmed } : {}),
+    };
+  }
+
+  /** Keep it on this device; the outbox syncs it (F12-05). Never lost. */
+  function keep(
+    body: Record<string, unknown> & { amount_minor: number; category_id: string },
+    sent = false,
+  ) {
+    setQueueing(true);
+    const shown = display(body.amount_minor, body.category_id);
+    const done = queued
+      ? updateQueued(queued, body, shown)
+      : queueEntry({
+          id: clientId,
+          endpoint: 'createTransaction',
+          body,
+          ownerId,
+          display: shown,
+          sent,
+        });
+    void done.then(
+      () => {
+        setQueueing(false);
+        onSaved(null, 'queued');
+      },
+      () => {
+        setQueueing(false);
+        setProblem("We couldn't keep this on your device. Your entry is still here; try again.");
+      },
+    );
+  }
+
   function fail(error: unknown) {
     if (error instanceof ApiError && error.code === 'VALIDATION_FAILED') {
       setServerErrors(error.fields);
@@ -185,24 +273,30 @@ function LoadedForm({ type, initial, onSaved, base, today, currencies, categorie
     setServerErrors({});
     const trimmed = note.trim();
     if (!initial) {
+      const body = {
+        id: clientId,
+        type,
+        amount_minor: amountMinor,
+        currency,
+        category_id: categoryId,
+        transaction_date: date,
+        ...(trimmed ? { note: trimmed } : {}),
+      };
+      if (queued || !online) {
+        keep(body);
+        return;
+      }
       create.mutate(
-        {
-          body: {
-            id: clientId,
-            type,
-            amount_minor: amountMinor,
-            currency,
-            category_id: categoryId,
-            transaction_date: date,
-            ...(trimmed ? { note: trimmed } : {}),
-          },
-          optimistic: optimisticItem(),
-        },
+        { body, optimistic: optimisticItem() },
         {
           onSuccess: (saved) => {
             onSaved(saved, 'created');
           },
-          onError: fail,
+          // The connection dropped mid-save: keep it rather than ask for a retry (§19.3).
+          onError: (error) => {
+            if (isNetworkFailure(error)) keep(body, true);
+            else fail(error);
+          },
         },
       );
       return;
@@ -300,15 +394,21 @@ function LoadedForm({ type, initial, onSaved, base, today, currencies, categorie
         )}
       </Field>
 
-      {!online && (
-        <FormNotice tone="offline">You're offline. Connect to save this {noun}.</FormNotice>
-      )}
-      {problem && online && <FormNotice tone="error">{problem}</FormNotice>}
+      {!online &&
+        (initial ? (
+          <FormNotice tone="offline">Connect to the internet to do this.</FormNotice>
+        ) : (
+          <FormNotice tone="offline">
+            You&apos;re offline. This {noun} will be saved on this device and synced when you
+            reconnect.
+          </FormNotice>
+        ))}
+      {problem && <FormNotice tone="error">{problem}</FormNotice>}
 
       <Button type="submit" size="lg" block loading={saving} disabled={!canSave}>
-        {problem ? 'Retry' : initial ? 'Save changes' : `Save ${noun}`}
+        {problem ? 'Retry' : initial || queued ? 'Save changes' : `Save ${noun}`}
       </Button>
-      {online && !saving && (amountMinor === null || amountMinor <= 0 || categoryId === null) && (
+      {canWork && !saving && (amountMinor === null || amountMinor <= 0 || categoryId === null) && (
         // Why Save is disabled, in words (never only a greyed button).
         <p className="type-body-sm text-fg-muted">
           {amountMinor === null || amountMinor <= 0

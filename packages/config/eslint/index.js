@@ -26,6 +26,8 @@ export default tseslint.config(
       '**/coverage/**',
       '**/storybook-static/**',
       '**/next-env.d.ts',
+      // Built by `serwist build` from apps/web/worker/sw.ts (F12).
+      'apps/web/public/sw.js*',
       'design-preview/**',
       'docs/**',
     ],

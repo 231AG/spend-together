@@ -16,7 +16,15 @@ import { ProgressBar } from '@/components/ui/progress-bar';
 import { GoalIcon } from '@/components/ui/goal-icon';
 import { StatusChip } from '@/components/ui/status-chip';
 import { formatMoney, type MoneyDisplay } from '@/lib/format-money';
+import { PendingRows } from '@/components/features/offline/offline-states';
+import { useMyOutbox } from '@/components/features/offline/sync-queue';
+import { useOnline } from '@/lib/connectivity';
+import { OFFLINE_BLOCKED } from '@/lib/couple';
+import { SAVED_OFFLINE } from '@/lib/offline-entry';
+import { useToast } from '@/components/ui/toast';
+import { pendingForGoal, pendingGoalMinor } from '@/lib/pending-entries';
 import {
+  afterThis,
   contributionDate,
   heroLine,
   progressLabel,
@@ -51,10 +59,31 @@ function Loaded({ goal }: { goal: GoalDetail }) {
   const money = (amountMinor: number, currency = goal.currency): MoneyDisplay =>
     toMoney(amountMinor, currency, byCode.get(currency));
   const fmt = (minor: number) => formatMoney(money(minor));
+  const online = useOnline();
+  const queued = useMyOutbox();
+  const toast = useToast();
+  const [contributing, setContributing] = useState(false);
   const archived = goal.archived_at !== null;
-  const completed = goal.status === 'completed';
-  const pct = progressLabel(goal.progress_pct, completed);
-  const saved = fmt(goal.balance.amount_minor);
+
+  // §19.2 Goal details offline: contributions waiting to sync are applied locally to the
+  // hero (balance, progress, remaining, completion) with the same formulas as "After
+  // this"; the pace-based status waits for the server (the contract has no created date).
+  const pending = pendingGoalMinor(queued, goal.id);
+  const local = pending.minor > 0 ? afterThis(goal, pending.minor) : null;
+  const shown: GoalDetail = local
+    ? {
+        ...goal,
+        balance: { ...goal.balance, amount_minor: local.balance },
+        remaining: { ...goal.remaining, amount_minor: local.remaining },
+        progress_pct: local.pct,
+        status: local.completes ? 'completed' : goal.status,
+      }
+    : goal;
+  // Only entries certainly not on the server yet are applied (no double counting).
+  const waitingCount = pendingForGoal(queued, goal.id).filter((i) => i.attempts === 0).length;
+  const completed = shown.status === 'completed';
+  const pct = progressLabel(shown.progress_pct, completed);
+  const saved = fmt(shown.balance.amount_minor);
   const target = fmt(goal.target.amount_minor);
 
   return (
@@ -90,21 +119,28 @@ function Loaded({ goal }: { goal: GoalDetail }) {
               </span>
             </div>
           </div>
-          <StatusChip status={goal.status} overdue={goal.required_pace.overdue} />
+          <StatusChip status={shown.status} overdue={goal.required_pace.overdue} />
         </div>
         <p className="num">
           <span className="type-num-display text-fg-default">{saved}</span>{' '}
           <span className="type-body-lg text-fg-body">of {target}</span>
         </p>
         <ProgressBar
-          value={goal.progress_pct}
+          value={shown.progress_pct}
           label={`${goal.name} progress`}
           valueText={`${pct} saved, ${saved} of ${target}`}
           tone="saving"
         />
         <p className="num type-body-sm text-fg-body">
-          {heroLine(goal, (m, c) => money(m, c), goal.required_pace.overdue)}
+          {heroLine(shown, (m, c) => money(m, c), goal.required_pace.overdue)}
         </p>
+        {waitingCount > 0 && (
+          <p className="type-body-sm text-fg-muted">
+            Includes {waitingCount} {waitingCount === 1 ? 'contribution' : 'contributions'} waiting
+            to sync{pending.unknown > 0 ? ' (some amounts are added once converted)' : ''}. Amounts
+            in other currencies are estimates.
+          </p>
+        )}
       </section>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -130,30 +166,73 @@ function Loaded({ goal }: { goal: GoalDetail }) {
         <ContributorBreakdown goal={goal} myId={me.data?.id ?? null} fmt={fmt} />
       )}
 
+      <PendingRows items={pendingForGoal(queued, goal.id)} baseCurrency={goal.currency} />
       <ContributionHistory
         goal={goal}
         contributions={contributions}
         money={money}
         readOnly={archived}
+        offline={!online}
       />
+
+      <Dialog
+        open={contributing}
+        onOpenChange={setContributing}
+        title={`Add contribution to ${goal.name}`}
+      >
+        {contributing && (
+          <ContributionForm
+            goal={goal}
+            onSaved={({ queued: kept }) => {
+              setContributing(false);
+              toast({ message: kept ? SAVED_OFFLINE : 'Contribution added' });
+            }}
+          />
+        )}
+      </Dialog>
 
       {!archived && (
         // Sticky above the tab bar on phones (SCR-17); inline from 768 px.
         <div className="fixed inset-x-0 bottom-(--tabbar-total) z-(--z-sticky) border-t border-border-default bg-bg-card p-3 pr-(--fab-clearance) md:static md:border-0 md:bg-transparent md:p-0">
           <div className="flex gap-3">
-            <Link
-              href={`/goals/${goal.id}/contribute`}
-              className={`${addLink} flex-1 md:flex-none`}
-            >
-              Add contribution
-            </Link>
-            <Link
-              href={`/goals/${goal.id}/edit`}
-              className="inline-flex min-h-(--touch-min) items-center gap-2 rounded-md border border-border-input bg-bg-card px-4 type-label text-fg-default hover:bg-bg-subtle"
-            >
-              <Pencil aria-hidden className="size-(--icon-sm)" strokeWidth={1.75} />
-              Edit goal
-            </Link>
+            {online ? (
+              <Link
+                href={`/goals/${goal.id}/contribute`}
+                className={`${addLink} flex-1 md:flex-none`}
+              >
+                Add contribution
+              </Link>
+            ) : (
+              // Offline the form opens here: a route change needs the server (F12-05).
+              <Button
+                className="flex-1 md:flex-none"
+                onClick={() => {
+                  setContributing(true);
+                }}
+              >
+                Add contribution
+              </Button>
+            )}
+            {online ? (
+              <Link
+                href={`/goals/${goal.id}/edit`}
+                className="inline-flex min-h-(--touch-min) items-center gap-2 rounded-md border border-border-input bg-bg-card px-4 type-label text-fg-default hover:bg-bg-subtle"
+              >
+                <Pencil aria-hidden className="size-(--icon-sm)" strokeWidth={1.75} />
+                Edit goal
+              </Link>
+            ) : (
+              // §19.1: goal management needs a connection; the reason is in the button's name.
+              <Button
+                variant="tertiary"
+                disabled
+                aria-label={`Edit goal. ${OFFLINE_BLOCKED}`}
+                title={OFFLINE_BLOCKED}
+                iconLeft={<Pencil aria-hidden className="size-(--icon-sm)" strokeWidth={1.75} />}
+              >
+                Edit goal
+              </Button>
+            )}
           </div>
         </div>
       )}
@@ -259,11 +338,14 @@ function ContributionHistory({
   contributions,
   money,
   readOnly,
+  offline,
 }: {
   goal: GoalDetail;
   contributions: ReturnType<typeof useContributions>;
   money: (amountMinor: number, currency?: string) => MoneyDisplay;
   readOnly: boolean;
+  /** §19.1: synced contributions can't be edited or deleted offline. */
+  offline: boolean;
 }) {
   const [editing, setEditing] = useState<Contribution | null>(null);
   const [deleting, setDeleting] = useState<Contribution | null>(null);
@@ -316,7 +398,7 @@ function ContributionHistory({
                       .join(' · ')}
                   </span>
                 </div>
-                {c.is_own && !readOnly && (
+                {c.is_own && !readOnly && !offline && (
                   <div className="flex gap-1">
                     <IconButton
                       label={`Edit contribution of ${inGoal} on ${contributionDate(c.contribution_date)}`}
@@ -348,6 +430,11 @@ function ContributionHistory({
       <h2 id="goal-history" className="type-h3 text-fg-default">
         Contributions
       </h2>
+      {offline && !readOnly && (
+        <p className="type-body-sm text-fg-muted">
+          {OFFLINE_BLOCKED} Saved contributions can be changed once you&apos;re back online.
+        </p>
+      )}
       {remove.isError && (
         <FormNotice tone="error">
           We couldn't delete that. Nothing was changed; try again.

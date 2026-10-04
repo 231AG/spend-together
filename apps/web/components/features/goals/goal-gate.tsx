@@ -8,6 +8,7 @@ import { ErrorState } from '@/components/ui/error-state';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { ApiError } from '@/lib/api-client';
 import { useGoal } from '@/lib/queries';
+import { NotSavedOffline, waitingForNetwork } from '@/components/features/offline/offline-states';
 
 // One place for a goal screen's loading, not-found, error and read-only states (F9-12,
 // F9-13), shared by goal details, edit goal and add contribution.
@@ -25,6 +26,7 @@ export function GoalGate({
   children: (goal: GoalDetail) => ReactNode;
 }) {
   const goal = useGoal(id);
+  if (waitingForNetwork(goal)) return <NotSavedOffline what="This goal" />;
   if (goal.isPending) {
     return writable ? (
       <LoadingSkeleton shape="row" count={4} label="Loading goal" />

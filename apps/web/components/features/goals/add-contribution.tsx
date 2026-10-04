@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useCloseRouteDialog } from '@/components/layout/route-dialog';
 import { useToast } from '@/components/ui/toast';
+import { SAVED_OFFLINE } from '@/lib/offline-entry';
 import { ContributionForm } from './contribution-form';
 import { GoalGate } from './goal-gate';
 
@@ -20,8 +21,9 @@ export function AddContribution({ goalId }: { goalId: string }) {
       {(goal) => (
         <ContributionForm
           goal={goal}
-          onSaved={({ completedNow }) => {
-            if (!completedNow) toast({ message: 'Contribution added' });
+          onSaved={({ completedNow, queued }) => {
+            if (queued) toast({ message: SAVED_OFFLINE });
+            else if (!completedNow) toast({ message: 'Contribution added' });
             if (closeDialog) closeDialog();
             else router.replace(`/goals/${goalId}`);
           }}

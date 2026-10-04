@@ -146,3 +146,36 @@ uncertainty is in cross-browser service-worker behaviour, not in the logic.
 Owner reviews: adding an expense with the network off, reconnecting, and seeing exactly
 one transaction; the "Sync pending" chip and queue detail; a forced permanent rejection
 landing in Needs attention; and the logout warning. Then F13 may start.
+
+## 12. As built (4 Oct 2026)
+
+- **Mock without a service worker** (D-93): `mocks/in-page.ts`; scenarios `lostResponses`
+  and `rejecting`.
+- **Service worker** (`worker/sw.ts`, `serwist.config.mjs`, D-94): precache shell, fonts,
+  icons and prerendered pages; `GET /api/v1` network-first 3 s; uncached pages redirect to
+  `/offline`; Background Sync wakes open windows. Registered in production builds
+  (`lib/service-worker.ts`).
+- **Install** (`app/manifest.ts`, `public/icons/`, D-95): standalone from `/home`, maskable
+  icon, theme colour from tokens, safe areas.
+- **Read cache** (`lib/query-client.ts`, D-96): persisted to IndexedDB, refetched after
+  restore, cleared on logout, dropped for a different person.
+- **Outbox** (`lib/outbox-machine.ts`, `lib/offline-queue.ts`, `lib/offline-sync.ts`,
+  `lib/offline-entry.ts`, D-97, D-98): FIFO, backoff, 8 attempts, same key on every retry,
+  Needs attention with Edit / Try again / Discard.
+- **Screens** (`components/features/offline/`, D-99…D-101): header chip ("Offline", "Sync
+  pending (n)", "Needs attention (n)") opening "Waiting to sync"; queued rows on Activity,
+  Home and goal details; totals and goal progress applied locally; offline in-place Add;
+  §19.1 disabled operations; cached-figures banner on Home and Insights.
+- **Self-audit** (high-effort review before merge): ten findings, nine fixed — busy retry
+  loop on a past deadline, answer applied to an entry edited mid-send, lost-answer
+  entries editable, double counting in local totals, the mock Offline preset spending
+  attempts, an entry queued mid-pass waiting for the poll, schema failures retried as
+  network ones, a failed IndexedDB read breaking logout, an incomplete refresh after sync.
+  The device-wide logout count was kept (D-102).
+- **Tests:** `lib/outbox-machine.test.ts`, `lib/offline-sync.test.ts` (WAC-17 against the
+  mock handlers, FIFO, refusal, owners, every trigger, no busy loop, mid-pass queueing),
+  `lib/pending-entries.test.ts`, `lib/pwa-colors.test.ts`, domain `withPending`;
+  `e2e/offline.spec.ts` at 360 / 768 / 1280 px: installability, cold offline load and
+  `/offline`, WAC-17 with three lost answers, edit-while-queued is one record, refusal →
+  Needs attention → Discard, §19.1 disabled operations, logout warning and cleared stores;
+  axe clean.

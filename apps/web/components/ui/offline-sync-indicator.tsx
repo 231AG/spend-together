@@ -1,56 +1,49 @@
 'use client';
 
-import { CloudOff, RefreshCw } from 'lucide-react';
-import { Popover } from 'radix-ui';
+import { AlertTriangle, CloudOff, RefreshCw } from 'lucide-react';
+import { cn } from '@/lib/cn';
 
-// Spec §14.3 OfflineSyncIndicator and §19.1: a subtle chip, "Offline" or
-// "Sync pending (2)"; activating it shows what is queued. Nothing renders when online
-// with an empty queue.
+// Spec §14.3 OfflineSyncIndicator and §19.1: a subtle chip in the header — "Offline",
+// "Sync pending (2)", or "Needs attention (1)" when an entry was refused (§19.3 point 5).
+// Activating it opens the queue (F12-10). Nothing renders when online with nothing
+// queued. Icon and words always carry the meaning together, never colour alone.
 
 export interface OfflineSyncIndicatorProps {
   online: boolean;
   pendingCount: number;
-  /** Short descriptions of queued items, e.g. "Expense · Food · $12.00". */
-  pendingItems?: string[];
+  attentionCount?: number;
+  onOpen?: () => void;
+}
+
+export function indicatorLabel(online: boolean, pending: number, attention: number): string {
+  const parts: string[] = [];
+  if (!online) parts.push('Offline');
+  if (attention > 0) parts.push(`Needs attention (${String(attention)})`);
+  if (pending > 0) parts.push(`Sync pending (${String(pending)})`);
+  return parts.join(' · ');
 }
 
 export function OfflineSyncIndicator({
   online,
   pendingCount,
-  pendingItems = [],
+  attentionCount = 0,
+  onOpen,
 }: OfflineSyncIndicatorProps) {
-  if (online && pendingCount === 0) return null;
-  const label = pendingCount > 0 ? `Sync pending (${pendingCount})` : 'Offline';
-  const Icon = online ? RefreshCw : CloudOff;
+  if (online && pendingCount === 0 && attentionCount === 0) return null;
+  const Icon = attentionCount > 0 ? AlertTriangle : online ? RefreshCw : CloudOff;
   return (
-    <Popover.Root>
-      <Popover.Trigger className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-border-input bg-bg-card px-3 type-caption text-fg-body hover:bg-bg-subtle">
-        <Icon aria-hidden className="size-(--icon-sm)" strokeWidth={1.75} />
-        {online ? label : pendingCount > 0 ? `Offline · ${label}` : label}
-      </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Content
-          sideOffset={6}
-          align="end"
-          className="z-(--z-overlay) w-(--popover-width) rounded-lg border border-border-default bg-bg-card p-4 shadow-elev-2"
-        >
-          <p className="type-label text-fg-default">
-            {online ? 'Syncing your changes' : 'You are offline'}
-          </p>
-          <p className="mt-1 type-body-sm text-fg-muted">
-            {pendingCount > 0
-              ? 'These will be saved as soon as you are back online.'
-              : 'New transactions and contributions will be saved on this device and synced later.'}
-          </p>
-          {pendingItems.length > 0 && (
-            <ul className="mt-3 flex flex-col gap-1 type-body-sm text-fg-body">
-              {pendingItems.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          )}
-        </Popover.Content>
-      </Popover.Portal>
-    </Popover.Root>
+    <button
+      type="button"
+      onClick={onOpen}
+      className={cn(
+        'inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 type-caption hover:bg-bg-subtle',
+        attentionCount > 0
+          ? 'border-status-atrisk-fg bg-status-atrisk-bg text-status-atrisk-fg'
+          : 'border-border-input bg-bg-card text-fg-body',
+      )}
+    >
+      <Icon aria-hidden className="size-(--icon-sm)" strokeWidth={1.75} />
+      {indicatorLabel(online, pendingCount, attentionCount)}
+    </button>
   );
 }

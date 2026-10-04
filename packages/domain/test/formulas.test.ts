@@ -17,6 +17,7 @@ import {
   savingsRateChangePts,
   savingsRatePct,
   sumMinor,
+  withPending,
   type CashTransaction,
 } from '../src';
 import { THRESHOLDS } from './fixtures/reference-dataset';
@@ -66,6 +67,44 @@ describe('summary edges', () => {
   it('display rounding of percentages is half away from zero', () => {
     expect(roundPct1(26.35)).toBe(26.4);
     expect(roundPct1(-4.25)).toBe(-4.3);
+  });
+});
+
+describe('withPending (§19.2 Home offline)', () => {
+  const september = { type: 'month' as const, start: '2026-09-01', end: '2026-09-30' };
+  const cached = { income: 120000, expenses: 57000, saved: 30000 };
+
+  it('applies in-period entries by the same formulas', () => {
+    const totals = withPending(
+      cached,
+      [
+        { kind: 'expense', date: '2026-09-17', baseAmountMinor: 1200 },
+        { kind: 'income', date: '2026-09-17', baseAmountMinor: 10000 },
+        { kind: 'saved', date: '2026-09-17', baseAmountMinor: 5000 },
+        // Outside the period: ignored.
+        { kind: 'expense', date: '2026-08-31', baseAmountMinor: 99999 },
+      ],
+      september,
+    );
+    expect(totals).toEqual({
+      income: 130000,
+      expenses: 58200,
+      saved: 35000,
+      net: 71800,
+      remaining: 36800,
+      savingsRatePct: (35000 / 130000) * 100,
+    });
+  });
+
+  it('with nothing pending equals the cached totals, N/A without income', () => {
+    expect(withPending({ income: 0, expenses: 500, saved: 0 }, [], september)).toEqual({
+      income: 0,
+      expenses: 500,
+      saved: 0,
+      net: -500,
+      remaining: -500,
+      savingsRatePct: null,
+    });
   });
 });
 

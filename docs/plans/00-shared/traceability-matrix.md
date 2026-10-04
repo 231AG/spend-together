@@ -38,7 +38,7 @@ Status: ☐ not started · ◐ in progress · ☑ evidenced by a passing test.
 | FR-22 | Profile and settings | F11, B5 | `components/features/profile/profile.test.tsx` (live values, rename, impact dialog), `apps/web/e2e/profile.spec.ts` (W-09 grouping, §7.10, time zone), `me.test.ts` | ◐ (UI ☑) |
 | FR-23 | Manage custom categories | F11, B5 | `components/features/profile/profile.test.tsx` (defaults locked, duplicate name, archive-not-delete, restore, refused restore atomic), `apps/web/e2e/profile.spec.ts` (archived category in history), `categories.crud.test.ts` | ◐ (UI ☑, mock ☑) |
 | FR-24 | Enter any currency; show converted value first | F7, B6 | `apps/web/lib/transactions.test.ts` (preview == stored, all pairs), `conversion-preview.test.ts` | ◐ (UI ☑) |
-| FR-25 | Offline queue with sync indicator | F12 | `e2e/offline.spec.ts`, `offline-queue.test.ts` | ☐ |
+| FR-25 | Offline queue with sync indicator | F12 | `apps/web/e2e/offline.spec.ts` (queue, Sync pending, Needs attention, disabled ops), `apps/web/lib/outbox-machine.test.ts`, `apps/web/lib/offline-sync.test.ts`, `apps/web/lib/pending-entries.test.ts` | ☑ (UI, against MSW) |
 | FR-26 | Email notifications with preferences | F11, B7 | `components/features/profile/profile.test.tsx` and `apps/web/e2e/profile.spec.ts` (exactly two switches, saved to `notify_email`), `notifications.test.ts` (send/suppress matrix) | ◐ (preferences UI ☑) |
 
 ## Web acceptance criteria (WAC-01…WAC-20)
@@ -46,7 +46,7 @@ Status: ☐ not started · ◐ in progress · ☑ evidenced by a passing test.
 | WAC | Criterion (abbreviated) | Phase(s) | Test(s) | Status |
 |---|---|---|---|---|
 | WAC-01 | Register → currency → Home < 90 s; no disclosure | F6, B4, B8 | `apps/web/e2e/auth.spec.ts` §7.1 (timed, F6 against MSW) | ◐ (UI ☑) |
-| WAC-02 | Sessions survive reload/restart; logout clears all | F6, F11, B4, B8 | `apps/web/e2e/profile.spec.ts` (logout lands signed out), `components/features/profile/profile.test.tsx` (all three stores), `e2e/session-persistence` | ◐ (logout UI ☑; persistence with B4/F12) |
+| WAC-02 | Sessions survive reload/restart; logout clears all | F6, F11, B4, B8 | `apps/web/e2e/profile.spec.ts` (logout lands signed out), `components/features/profile/profile.test.tsx` (all three stores), `apps/web/e2e/offline.spec.ts` (logout empties the outbox and persisted cache; cold offline reload keeps the session view), `e2e/session-persistence` | ◐ (UI ☑; cookie persistence with B4) |
 | WAC-03 | Income CRUD updates all affected periods | F7, F8, B5 | `apps/web/e2e/home-insights.spec.ts` (add/delete moves Home totals), invalidation in `use-transaction-mutations.ts` | ◐ (UI ☑ against MSW; live with B5) |
 | WAC-04 | Same for expenses incl. category totals and % | F7, F8, B5 | `apps/web/e2e/home-insights.spec.ts` (expense moves totals and the Food category) | ◐ (UI ☑ against MSW; live with B5) |
 | WAC-05 | Home matches F-01…F-06 for all three periods | F2, F8, B3, B5 | `packages/domain/test/*.test.ts`, `apps/web/e2e/home-insights.spec.ts` (month vs §6.5; today/week render) | ◐ (domain ☑, UI ☑ month) |
@@ -61,8 +61,8 @@ Status: ☐ not started · ◐ in progress · ☑ evidenced by a passing test.
 | WAC-14 | Non-base entry stored with original; preview == saved | F7, B6 | `apps/web/lib/transactions.test.ts`, `apps/web/e2e/transactions.spec.ts` (LRD, back-dated), `packages/domain/test/*.test.ts` **T-11** | ◐ (domain ☑, UI ☑) |
 | WAC-15 | Base-currency change re-expresses, preserves originals | F11, B6 | `apps/web/e2e/profile.spec.ts` (§7.10: dialog, banner over previous values, € totals, 5,000.00 LRD kept with ≈ €), `profile.test.tsx` (goal currencies unchanged, freeze then refetch), `recalc.test.ts` | ◐ (UI ☑ against MSW) |
 | WAC-16 | Core flows on 4 desktop browsers + mobile viewports | F13, B11 | Playwright project matrix | ☐ |
-| WAC-17 | Offline expense syncs once, no duplicate | F12, B8 | `e2e/offline.spec.ts` | ☐ |
-| WAC-18 | Loading/empty/error states on every primary screen | F3–F11, F13 | `e2e/a11y.spec.ts` state sweep, `components/ui/stories.a11y.test.tsx` (F3) | ◐ (components ☑) |
+| WAC-17 | Offline expense syncs once, no duplicate | F12, B8 | `apps/web/e2e/offline.spec.ts` (three lost answers, one record), `apps/web/lib/offline-sync.test.ts` (same key on every retry) | ◐ (UI ☑ against MSW; live with B8) |
+| WAC-18 | Loading/empty/error states on every primary screen | F3–F11, F13 | `e2e/a11y.spec.ts` state sweep, `components/ui/stories.a11y.test.tsx` (F3), `apps/web/e2e/offline.spec.ts` (§19.2 offline column) | ◐ (components ☑, offline column ☑) |
 | WAC-19 | No serious/critical axe violations; manual SR pass | F3, F13 | `e2e/a11y.spec.ts`, `screen-reader-report.md`, `components/ui/stories.a11y.test.tsx` (F3) | ◐ (components ☑) |
 | WAC-20 | LCP ≤ 2.5 s; JS ≤ 180 kB; API p95 ≤ 800 ms | F13 (client), B9 (API) | Lighthouse CI, `load/dashboard.k6.js` | ☐ |
 

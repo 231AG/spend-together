@@ -68,6 +68,39 @@ export function periodTotals(input: {
   };
 }
 
+/** An entry made offline and not yet synced, with its estimated base amount (§11.2). */
+export interface PendingEntry {
+  kind: 'income' | 'expense' | 'saved';
+  date: IsoDate;
+  baseAmountMinor: number;
+}
+
+/**
+ * §19.2 Home offline: the cached totals with not-yet-synced entries applied locally, by
+ * the same F-01…F-06 formulas. Only entries inside `period` count. When the server
+ * answers, its own figures replace these (§11.2).
+ */
+export function withPending(
+  totals: { income: number; expenses: number; saved: number },
+  pending: readonly PendingEntry[],
+  period: Period,
+): PeriodTotals {
+  const inPeriod = pending.filter((p) => isInPeriod(p.date, period));
+  const add = (kind: PendingEntry['kind']) =>
+    sumMinor(inPeriod.filter((p) => p.kind === kind).map((p) => p.baseAmountMinor));
+  const income = minor(totals.income + add('income'));
+  const expenses = minor(totals.expenses + add('expense'));
+  const saved = minor(totals.saved + add('saved'));
+  return {
+    income,
+    expenses,
+    saved,
+    net: minor(income - expenses),
+    remaining: minor(income - expenses - saved),
+    savingsRatePct: savingsRatePct(saved, income),
+  };
+}
+
 /** F-06: null (N/A) when income is 0 (AC05, T-02). */
 export function savingsRatePct(saved: number, income: number): number | null {
   if (income === 0) return null;

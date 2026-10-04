@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/toast';
 import { useCloseRouteDialog } from '@/components/layout/route-dialog';
+import { SAVED_OFFLINE } from '@/lib/offline-entry';
 import { TransactionForm, type TransactionType } from './transaction-form';
 
 // SCR-10/11 in either presentation (F7-01/02): inside the intercepted route dialog it
@@ -16,8 +17,15 @@ export function AddTransaction({ type }: { type: TransactionType }) {
   return (
     <TransactionForm
       type={type}
-      onSaved={() => {
-        toast({ message: type === 'income' ? 'Income added' : 'Expense added' });
+      onSaved={(_saved, outcome) => {
+        toast({
+          message:
+            outcome === 'queued'
+              ? SAVED_OFFLINE
+              : type === 'income'
+                ? 'Income added'
+                : 'Expense added',
+        });
         if (closeDialog) closeDialog();
         else router.replace('/home');
       }}

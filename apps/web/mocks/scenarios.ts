@@ -19,6 +19,10 @@ export interface ScenarioState {
   recalculating: boolean;
   /** How long a base-currency change reports `recalculating` (ms). */
   recalcMs: number;
+  /** The next N answers to idempotent writes are lost after the write commits (WAC-17). */
+  lostResponses: number;
+  /** Endpoints that refuse permanently (409), as for a goal archived elsewhere (§19.3). */
+  rejecting: EndpointName[];
 }
 
 export const DEFAULT_SCENARIO: ScenarioState = {
@@ -28,6 +32,8 @@ export const DEFAULT_SCENARIO: ScenarioState = {
   failing: [],
   recalculating: false,
   recalcMs: 3000,
+  lostResponses: 0,
+  rejecting: [],
 };
 
 export const PRESETS: Record<string, Partial<ScenarioState>> = {

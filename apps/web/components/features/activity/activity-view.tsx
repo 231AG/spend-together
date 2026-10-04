@@ -11,6 +11,13 @@ import { ErrorState } from '@/components/ui/error-state';
 import { FilterChip } from '@/components/ui/filter-chip';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { TransactionRow } from '@/components/ui/transaction-row';
+import {
+  NotSavedOffline,
+  PendingRows,
+  waitingForNetwork,
+} from '@/components/features/offline/offline-states';
+import { useMyOutbox } from '@/components/features/offline/sync-queue';
+import { waiting } from '@/lib/pending-entries';
 import { useAddSheet } from '@/components/features/add-sheet';
 import { apiClient } from '@/lib/api-client';
 import { formatDay } from '@/lib/format-date';
@@ -235,10 +242,25 @@ function ActivityList({
     };
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  const queued = useMyOutbox();
   const base = me.data?.base_currency ?? 'USD';
-  const items = query.data?.pages.flatMap((p) => p.data) ?? [];
+  // An entry both queued and on the server (its answer was lost) shows once, as queued.
+  const queuedIds = new Set(queued.map((q) => q.id));
+  const items = (query.data?.pages.flatMap((p) => p.data) ?? []).filter(
+    (i) => !queuedIds.has(i.id),
+  );
   const search = params.toString();
+  // §19.2 Activity offline: queued rows at the top (filters apply to server results only).
+  const pending = filtered ? null : <PendingRows items={queued} baseCurrency={base} />;
 
+  if (waitingForNetwork(query)) {
+    return (
+      <div className="flex flex-col gap-4">
+        {pending}
+        <NotSavedOffline what="Your activity" />
+      </div>
+    );
+  }
   if (query.isPending) return <LoadingSkeleton shape="row" count={8} label="Loading activity" />;
   if (query.isError && items.length === 0) {
     return (
@@ -249,7 +271,7 @@ function ActivityList({
       />
     );
   }
-  if (items.length === 0) {
+  if (items.length === 0 && (filtered || waiting(queued).length === 0)) {
     return filtered ? (
       <EmptyState
         title="No activity matches these filters"
@@ -291,6 +313,7 @@ function ActivityList({
           retrying={query.isFetching}
         />
       )}
+      {pending}
       {groupByDate(items).map((group) => (
         <section key={group.date} aria-label={dayLabel(group.date)} className="flex flex-col gap-1">
           <h2 className="px-2 type-overline text-fg-muted">{dayLabel(group.date)}</h2>

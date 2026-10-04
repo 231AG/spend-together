@@ -20,6 +20,11 @@ export interface MoneyTextProps {
   /** The amount in base currency when `money` is not in base. */
   base?: MoneyDisplay;
   estimated?: boolean;
+  /**
+   * §11.2: an offline entry's ≈ line is the device's estimate from cached rates; the
+   * server's conversion replaces it on sync. Labelled in words, not only by an icon.
+   */
+  provisional?: boolean;
   className?: string;
 }
 
@@ -36,6 +41,7 @@ export function MoneyText({
   kind = 'neutral',
   base,
   estimated = false,
+  provisional = false,
   className,
 }: MoneyTextProps) {
   const sign = kind === 'income' ? 'income' : kind === 'expense' ? 'expense' : 'auto';
@@ -49,7 +55,8 @@ export function MoneyText({
       {base && (
         <span className="inline-flex items-center gap-1 num type-caption text-fg-muted">
           {formatApprox(base)}
-          {estimated && (
+          {provisional && <span> (estimate)</span>}
+          {estimated && !provisional && (
             <span title={ESTIMATED_RATE_NOTE} className="inline-flex">
               <Info aria-hidden className="size-(--icon-sm)" strokeWidth={1.75} />
               <span className="sr-only">{ESTIMATED_RATE_NOTE}</span>

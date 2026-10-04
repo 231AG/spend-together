@@ -16,7 +16,9 @@ import { celebrate } from '@/lib/celebration';
 import { cn } from '@/lib/cn';
 import { useOnline } from '@/lib/connectivity';
 import { previewConversion, tooSmallMessage } from '@/lib/conversion-preview';
-import { formatMoney } from '@/lib/format-money';
+import { formatMoney, type MoneyDisplay } from '@/lib/format-money';
+import { isNetworkFailure, queueEntry, updateQueued } from '@/lib/offline-entry';
+import type { OutboxDisplay, OutboxItem } from '@/lib/outbox-machine';
 import { afterThis, progressLabel } from '@/lib/goals';
 import { useCurrencies, useMe, useRates, useToday } from '@/lib/queries';
 import { crossRateFor } from '@/lib/transactions';
@@ -33,7 +35,17 @@ export interface ContributionFormProps {
   goal: GoalDetail;
   /** Edit mode. */
   initial?: Contribution;
-  onSaved: (result: { goal: GoalDetail; completedNow: boolean }) => void;
+  /** Edit a contribution still waiting to sync (§19.3 point 3). */
+  queued?: OutboxItem;
+  /** `queued`: kept on this device to sync later (F12-05). */
+  onSaved: (result: { goal: GoalDetail; completedNow: boolean; queued?: boolean }) => void;
+}
+
+interface QueuedContributionBody {
+  amount_minor: number;
+  currency: string;
+  contribution_date: string;
+  note?: string;
 }
 
 export function ContributionForm(props: ContributionFormProps) {
@@ -47,6 +59,7 @@ export function ContributionForm(props: ContributionFormProps) {
     <LoadedContributionForm
       {...props}
       base={me.data.base_currency}
+      ownerId={me.data.id}
       today={today}
       currencies={currencies.data.data.filter((c) => c.is_active)}
     />
@@ -56,12 +69,15 @@ export function ContributionForm(props: ContributionFormProps) {
 function LoadedContributionForm({
   goal,
   initial,
+  queued,
   onSaved,
   base,
+  ownerId,
   today,
   currencies,
 }: ContributionFormProps & {
   base: string;
+  ownerId: string;
   today: string;
   currencies: { code: string; name: string; exponent: number; symbol: string }[];
 }) {
@@ -70,20 +86,28 @@ function LoadedContributionForm({
   const meta = (code: string) =>
     currencies.find((c) => c.code === code) ?? { code, name: code, exponent: 2, symbol: code };
 
-  const [currency, setCurrency] = useState(initial?.amount.currency ?? goal.currency);
+  const kept = queued?.body as QueuedContributionBody | undefined;
+  const [currency, setCurrency] = useState(
+    initial?.amount.currency ?? kept?.currency ?? goal.currency,
+  );
   const [text, setText] = useState(() =>
     initial
       ? entryFromMinor(initial.amount.amount_minor, meta(initial.amount.currency).exponent)
-      : '',
+      : kept
+        ? entryFromMinor(kept.amount_minor, meta(kept.currency).exponent)
+        : '',
   );
-  const [date, setDate] = useState(initial?.contribution_date ?? today);
-  const [note, setNote] = useState(initial?.note ?? '');
+  const [date, setDate] = useState(initial?.contribution_date ?? kept?.contribution_date ?? today);
+  const [note, setNote] = useState(initial?.note ?? kept?.note ?? '');
   const [problem, setProblem] = useState<string | null>(null);
-  const [clientId] = useState(() => crypto.randomUUID());
+  const [queueing, setQueueing] = useState(false);
+  const [clientId] = useState(() => queued?.id ?? crypto.randomUUID());
 
   const create = useCreateContribution(goal.id);
   const patch = usePatchContribution(goal.id);
-  const saving = create.isPending || patch.isPending;
+  const saving = create.isPending || patch.isPending || queueing;
+  // §19.1: a new contribution can be saved offline (queued); a synced one can't change.
+  const canWork = initial ? online : true;
 
   const from = meta(currency);
   const goalMeta = meta(goal.currency);
@@ -121,7 +145,58 @@ function LoadedContributionForm({
       exponent: goalMeta.exponent,
       symbol: goalMeta.symbol,
     });
-  const canSave = amount !== null && amount > 0 && !tooSmall && online && !saving;
+  const canSave = amount !== null && amount > 0 && !tooSmall && canWork && !saving;
+
+  /** The "Sync pending" row, with estimates in goal and base currency (§11.2). */
+  function display(minor: number): OutboxDisplay {
+    const shown = (amountMinor: number, code: string): MoneyDisplay => ({
+      amountMinor,
+      currency: code,
+      exponent: meta(code).exponent,
+      symbol: meta(code).symbol,
+    });
+    const goalShare = goalMinor === null ? null : shown(goalMinor, goal.currency);
+    const baseMinor =
+      currency === base ? minor : goal.currency === base && goalMinor !== null ? goalMinor : null;
+    const trimmed = note.trim();
+    return {
+      kind: 'contribution',
+      goalId: goal.id,
+      title: goal.name,
+      amount: shown(minor, currency),
+      goalEstimate: goalShare,
+      baseEstimate: baseMinor === null ? null : shown(baseMinor, base),
+      date,
+      ...(trimmed ? { note: trimmed } : {}),
+    };
+  }
+
+  /** Keep it on this device to sync later; the goal recomputes locally meanwhile. */
+  function keep(body: Record<string, unknown> & { amount_minor: number }, sent = false) {
+    setQueueing(true);
+    const shown = display(body.amount_minor);
+    const done = queued
+      ? updateQueued(queued, body, shown)
+      : queueEntry({
+          id: clientId,
+          endpoint: 'createContribution',
+          params: { id: goal.id },
+          body,
+          ownerId,
+          display: shown,
+          sent,
+        });
+    void done.then(
+      () => {
+        setQueueing(false);
+        onSaved({ goal, completedNow: false, queued: true });
+      },
+      () => {
+        setQueueing(false);
+        setProblem("We couldn't keep this on your device. Your entry is still here; try again.");
+      },
+    );
+  }
 
   function fail(error: unknown) {
     if (error instanceof ApiError && error.code === 'GOAL_ARCHIVED') {
@@ -147,21 +222,27 @@ function LoadedContributionForm({
       onSaved({ goal: result.goal ?? goal, completedNow });
     };
     if (!initial) {
-      create.mutate(
-        {
-          id: clientId,
-          amount_minor: amount,
-          currency,
-          contribution_date: date,
-          ...(trimmed ? { note: trimmed } : {}),
+      const body = {
+        id: clientId,
+        amount_minor: amount,
+        currency,
+        contribution_date: date,
+        ...(trimmed ? { note: trimmed } : {}),
+      };
+      if (queued || !online) {
+        keep(body);
+        return;
+      }
+      create.mutate(body, {
+        onSuccess: (result) => {
+          done(result, result.saved.id);
         },
-        {
-          onSuccess: (result) => {
-            done(result, result.saved.id);
-          },
-          onError: fail,
+        // The connection dropped mid-save: keep it rather than ask for a retry (§19.3).
+        onError: (error) => {
+          if (isNetworkFailure(error)) keep(body, true);
+          else fail(error);
         },
-      );
+      });
       return;
     }
     const body = {
@@ -265,10 +346,18 @@ function LoadedContributionForm({
         )}
       </section>
 
-      {!online && <FormNotice tone="offline">Connect to the internet to do this.</FormNotice>}
-      {problem && online && <FormNotice tone="error">{problem}</FormNotice>}
+      {!online &&
+        (initial ? (
+          <FormNotice tone="offline">Connect to the internet to do this.</FormNotice>
+        ) : (
+          <FormNotice tone="offline">
+            You&apos;re offline. This contribution will be saved on this device and synced when you
+            reconnect.
+          </FormNotice>
+        ))}
+      {problem && <FormNotice tone="error">{problem}</FormNotice>}
       <Button type="submit" size="lg" block loading={saving} disabled={!canSave}>
-        {problem ? 'Retry' : initial ? 'Save changes' : 'Add contribution'}
+        {problem ? 'Retry' : initial || queued ? 'Save changes' : 'Add contribution'}
       </Button>
     </form>
   );

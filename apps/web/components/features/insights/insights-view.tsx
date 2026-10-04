@@ -4,6 +4,12 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useEffect, useMemo } from 'react';
 import { ErrorState } from '@/components/ui/error-state';
+import {
+  CachedFiguresBanner,
+  NotSavedOffline,
+  waitingForNetwork,
+} from '@/components/features/offline/offline-states';
+import { useOnline } from '@/lib/connectivity';
 import { IconButton } from '@/components/ui/icon-button';
 import { LoadingSkeleton } from '@/components/ui/loading-skeleton';
 import { SegmentedControl } from '@/components/ui/segmented-control';
@@ -47,6 +53,7 @@ const PERIODS = [
 ] as const;
 
 export function InsightsView() {
+  const online = useOnline();
   const [period, setPeriod] = useUrlParam<InsightsPeriod>(
     'period',
     ['daily', 'weekly', 'monthly'],
@@ -78,6 +85,14 @@ export function InsightsView() {
     />
   );
 
+  if (waitingForNetwork(insights)) {
+    return (
+      <div className="flex flex-col gap-6">
+        {control}
+        <NotSavedOffline what="This period" />
+      </div>
+    );
+  }
   if (insights.isPending) {
     return (
       <div className="flex flex-col gap-6">
@@ -115,6 +130,8 @@ export function InsightsView() {
 
   return (
     <div className="flex flex-col gap-6" aria-busy={insights.isFetching || undefined}>
+      {/* §19.2 Insights offline: the last cached period, with a banner. */}
+      {!online && <CachedFiguresBanner />}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         {control}
         <div className="flex items-center gap-1" role="group" aria-label="Choose period">
