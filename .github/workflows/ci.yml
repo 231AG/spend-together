@@ -22,7 +22,7 @@ jobs:
       # Never trust the Turborepo cache on main (F0 risk: caching masking a failure).
       TURBO_FORCE: ${{ github.ref == 'refs/heads/main' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
