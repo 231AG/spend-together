@@ -44,7 +44,7 @@ jobs:
       # 360 / 768 / 1280 px against the production build in mock mode.
       - run: pnpm --filter @spendtogether/web exec playwright install --with-deps chromium
       - run: pnpm --filter @spendtogether/web e2e
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-traces
